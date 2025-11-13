@@ -1,7 +1,7 @@
 ---
-title: project
+title: Kylie King's DSAN 6750 GIS project
 authors:
-  - name: Norah Jones
+  - name: Kylie King
     affiliation: The University
     roles: writing
     corresponding: true
