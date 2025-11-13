@@ -25,7 +25,6 @@ library(sf) |> suppressPackageStartupMessages()
 library(mapview) |> suppressPackageStartupMessages()
 library(spatstat) |> suppressPackageStartupMessages()
 library(stars) |> suppressPackageStartupMessages()
-library(rnaturalearth) |> suppressPackageStartupMessages()
 set.seed(6805)
 ```
 
@@ -38,19 +37,12 @@ barrows_df <- barrows_df |> select(townland, county, smrs, class_code, latitude,
 barrows_sf <- barrows_df |> sf::st_as_sf(
   coords=c("longitude","latitude"),
   crs=4326) #projected to work with mapview, will reproject to Irish Transverse Mercator (ITM) (EPSG:2157)
-  #also the land cover data is epsg 4326
 
 mapview(head(barrows_sf,100)) #showing the first 100 points
 head(barrows_sf)
 
 ```
 
-```{r}
-#| label: getting ireland shapefile
-
-ireland <- ne_countries(country = "ireland", scale="large")
-mapview(ireland)
-```
 
 
 ## Hypotheses
