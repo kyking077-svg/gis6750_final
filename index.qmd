@@ -2,13 +2,11 @@
 title: Kylie King's DSAN 6750 GIS project
 authors:
   - name: Kylie King
-    affiliation: The University
+    affiliation: Georgetown University
     roles: writing
     corresponding: true
 bibliography: references.bib
 ---
 
-## Section
-hello there
-first do the git.sh, then do the commit panel, idk why
-trying again
+## Abstract
+The purpose of this project is to investigate whether Ireland is caring for its historic fairy habitats. Because fairies are notorious for obstructing data collection and interfering with computer calculations, there is very little data available on fairy habitats and their preservation. This is a two-part project, where we first determine where fairies prefer to live, and then assess whether their preferred habitat is flourishing. Data collected (with much sacrifice) on the location of fairy barrows (homes) will be converted into a density layer to determine where fairy barrows are most densely clustered. Next, land cover data from 1990 will be compared to the barrow density to determine which habitat fairies prefer. Finally,  land cover data from 2018 will be compared to the 1990 dataset, to produce a change matrix, and identify whether Irish fairy habitat remains intact.
