@@ -19,7 +19,7 @@ if [ "$answer" != "${answer#[Yy]}" ] ; then
     git commit -m "$message"
     
     # PUSH MAIN BRANCH
-    git push origin main
+    git push origin master
 
 else
     echo "Not synched to GitHub!"
