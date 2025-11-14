@@ -22,3 +22,4 @@ Data Dictionary for Barrows (cleaned)
 https://www.archaeology.ie/app/uploads/2025/03/Archaeology-RMP-Kilkenny-Manual-1996-0022.pdf
 havent figured out how to link my bib here 
 
+Note for land cover: 1990 data is called U2000_CLC1990_V2020_20u1 inside U2000_CLC1990_V2020_20u1.gdb, and 2018 os called  U2018_CLC2018_V2020_20u1 inside U2018_CLC2018_V2020_20u1.gdb
