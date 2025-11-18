@@ -23,3 +23,55 @@ https://www.archaeology.ie/app/uploads/2025/03/Archaeology-RMP-Kilkenny-Manual-1
 havent figured out how to link my bib here 
 
 Note for land cover: 1990 data is called U2000_CLC1990_V2020_20u1 inside U2000_CLC1990_V2020_20u1.gdb, and 2018 os called  U2018_CLC2018_V2020_20u1 inside U2018_CLC2018_V2020_20u1.gdb
+
+Land Cover Data Classification and Reclassification
+
+| Cell Value | CLC Code | Full Land Cover Category | New Land Cover Category | New Cell Value |
+|--------------|-------------|------|----------|------|
+|1	| 111	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|2	| 112	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|3	| 121	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|4	| 122	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|5	| 123	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|6	| 124	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|7	| 131	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|8	| 132	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|9	| 133	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|10	| 141	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|11	| 142	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|12	| 211	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|13	| 212	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|14	| 213	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|15	| 221	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|16	| 222	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|17	| 223	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|18	| 231	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|19	| 241	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|20	| 242	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|21	| 243	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|22	| 244	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|23	| 311	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|24	| 312	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|25	| 313	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|26	| 321	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|27	| 322	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|28	| 323	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|29	| 324	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|30	| 331	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|31	| 332	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|32	| 333	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|33	| 334	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|34	| 335	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|35	| 411	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|36	| 412	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|37	| 421	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|38	| 422	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|39	| 423	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|40	| 511	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|41	| 512	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|42	| 521	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|43	| 522	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|44	| 523	|	Artificial surfaces-Urban fabric-Continuous urban fabric | Dense Human Zones | 1 |
+|48| 999	|	NODATA-NODATA-NODATA | No Data | 1 |
+|49| 990	|	UNCLASSIFIED-UNCLASSIFIED LAND SURFACE-UNCLASSIFIED LAND SURFACE | No Data | 1 |
+|50| 995	|	UNCLASSIFIED-UNCLASSIFIED WATER BODIES-UNCLASSIFIED WATER BODIES | No Data | 1 |

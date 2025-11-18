@@ -26,6 +26,8 @@ library(mapview) |> suppressPackageStartupMessages()
 library(spatstat) |> suppressPackageStartupMessages()
 library(stars) |> suppressPackageStartupMessages()
 library(rnaturalearth) |> suppressPackageStartupMessages()
+library(terra) |> suppressPackageStartupMessages()
+library(tidyterra) |> suppressPackageStartupMessages()
 set.seed(6805)
 ```
 
@@ -52,6 +54,7 @@ ireland <- ne_countries(country = "ireland", scale="large")
 mapview(ireland)
 ```
 
+ok so, instead of the intensity function of population which is divided into low, med, and high density, I have the raster dataset which is split into ~5 habitat types
 
 ## Hypotheses
 Hypothesis 1: Fairies mainly live in forested areas
@@ -62,13 +65,62 @@ probably forests I think
 
 
 # Viewing Window Construction
-probably all of ireland, but check for convex hulls
+```{r}
+#| label: viewing window construction
+ireland_sfc <- ireland |> st_convex_hull() #unsure if we will need this yet, or if the base shapefile will work for all the points
+
+ireland <- ireland |> sf::st_transform(2157)
+
+ireland_sfc <- ireland_sfc |> sf::st_transform(2157) #Irish Transverse Mercator
+mapview(ireland_sfc)
+
+```
 
 # Intensity Layer Construction
-wahoooo 
+wahoooo actually do i need this? Gonna read in the raster first to see what's up
 
 # Land Cover Analysis
 this is where I have to do interesting things with a raster, not sure how to do that yet. Will definitely have to reclassify to make sure the two land covers match
+
+```{r}
+#| label: reading in the rasters
+
+temp_dir <- tempdir() #temporary directory for working
+zip_file_path <- "data/raw/Rasters.zip" #path to raster
+unzip(zipfile = zip_file_path, exdir = temp_dir) #unzipping into temp directory
+
+# 1990 dataset
+tiff_file_path_1990 <- file.path(temp_dir, "Rasters/U2000_CLC1990_V2020_20u1/U2000_CLC1990_V2020_20u1/U2000_CLC1990_V2020_20u1.tif")
+lc_1990 <- rast(tiff_file_path_1990)
+
+# 2018 dataset
+tiff_file_path_2018 <- file.path(temp_dir, "Rasters/U2018_CLC2018_V2020_20u1/U2018_CLC2018_V2020_20u1/U2018_CLC2018_V2020_20u1.tif")
+lc_2018 <- rast(tiff_file_path_2018)
+
+```
+
+```{r}
+#| label: visualizing 1990 raster
+# This works!!
+# Convert the raster to a data frame for ggplot2
+lc_df_test <- as.data.frame(reprojected_1990, xy=TRUE) |>
+  rename(value = U2000_CLC1990_V2020_20u1) # Rename the value column
+
+# Ensure the 'value' column is treated as a factor for discrete colors
+lc_df_test$value <- factor(lc_df_test$value)
+
+# Plot using ggplot2
+ggplot(data = lc_df_test, aes(x = x, y = y, fill = value)) +
+  geom_raster() +
+  labs(title = "Raster Symbology by Unique Values", fill = "Category") +
+  theme_minimal()
+```
+
+```{r}
+#| label: reclassifying
+#plot(lc_2018)
+```
+
 
 ## Fairy Habitat Preservation
 small little paragraph about what we have to do, also maybe prepping the land cover
