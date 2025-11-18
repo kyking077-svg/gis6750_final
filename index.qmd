@@ -103,7 +103,7 @@ lc_2018 <- rast(tiff_file_path_2018)
 #| label: visualizing 1990 raster
 # This works!!
 # Convert the raster to a data frame for ggplot2
-lc_df_test <- as.data.frame(reprojected_1990, xy=TRUE) |>
+lc_df_test <- as.data.frame(lc_1990, xy=TRUE) |>
   rename(value = U2000_CLC1990_V2020_20u1) # Rename the value column
 
 # Ensure the 'value' column is treated as a factor for discrete colors
@@ -118,9 +118,54 @@ ggplot(data = lc_df_test, aes(x = x, y = y, fill = value)) +
 
 ```{r}
 #| label: reclassifying
-#plot(lc_2018)
+rclmat <- matrix(c(1, 11, 1,
+                   11.999, 22, 2,
+                   22.999, 25, 3,
+                   25.999, 27, 4,
+                   27.999, 29, 3,
+                   29.999, 34, 5,
+                   34.999, 39, 6,
+                   39.999, 44, 7
+                   ), ncol=3, byrow=TRUE)
+
+rc_test_1990 <- classify(lc_1990, rclmat, include.lowest=TRUE)
 ```
 
+```{r}
+#| label: reclassifying visualization
+rc_test_1990_df <- as.data.frame(rc_test_1990, xy=TRUE) |>
+  rename(value = U2000_CLC1990_V2020_20u1) # Rename the value column
+
+# Ensure the 'value' column is treated as a factor for discrete colors
+rc_test_1990_df$value <- factor(rc_test_1990_df$value)
+
+# Plot using ggplot2
+ggplot(data = rc_test_1990_df, aes(x = x, y = y, fill = value)) +
+  geom_tile() +
+  labs(title = "Reclassified Land Cover Values") +
+  scale_fill_manual(
+    name = "Reclassified Land Cover", 
+    labels = c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies"),
+    values = c("red3", "wheat2", "darkgreen", "darkolivegreen1","bisque4","aquamarine1","dodgerblue2")) +
+  theme_minimal()
+```
+
+```{r}
+#| label: turning rasters into sf object to see what happens
+# 1. Create a sample SpatRaster
+
+crs(rc_test_1990) <- "epsg:4326" # Assign an initial CRS (e.g., WGS84)
+
+# 2. Convert the SpatRaster to SpatVector (polygons)
+test_polygons_terra <- as.polygons(rc_test_1990)
+
+# 3. Convert the SpatVector to an sf object
+test_polygons_sf <- st_as_sf(test_polygons_terra)
+
+# You can now work with 'polygons_sf' as a standard sf object.
+mapview(test_polygons_sf)
+#that worked perfectly! Now we have our 'zones' and can do a monte carlo simulation!
+```
 
 ## Fairy Habitat Preservation
 small little paragraph about what we have to do, also maybe prepping the land cover
@@ -130,3 +175,56 @@ no idea how do to this, wheeeeeeee
 
 ## Discussion and Findings
 the irish people are probably in danger because i bet fairy habitat has declined
+
+
+
+## Starting from the beginning, to get some structure
+
+Our 3 datasets:
+- Point data of fairy barrows, to determine if there is clustering in particular habitats
+- Point data of stone circles, to see if THOSE are in any particular habitat (because they're bridges between worlds, so need to be in similar places)
+- Shapefile from natural earth data of ireland, at highest resolution
+- Raster data of land cover from 1990, to identify the habitats (and create the polygons to test for clustering)
+- Raster data of land cover from 2018, to determine if fairy habitat has shrunk significantly
+
+Load all the libraries
+```{r}
+#| label: initializing
+library(tidyverse) |> suppressPackageStartupMessages()
+library(sf) |> suppressPackageStartupMessages()
+library(mapview) |> suppressPackageStartupMessages()
+library(spatstat) |> suppressPackageStartupMessages()
+library(stars) |> suppressPackageStartupMessages()
+library(rnaturalearth) |> suppressPackageStartupMessages()
+library(terra) |> suppressPackageStartupMessages()
+library(tidyterra) |> suppressPackageStartupMessages()
+set.seed(6805)
+```
+
+Get the barrows point data into an sf object and visualize
+```{r}
+#| label: data preparation
+
+barrows_df <- read_csv('data/raw/barrows.csv')
+barrows_df <- barrows_df |> select(townland, county, smrs, class_code, latitude, longitude) |> mutate(type = "barrow")
+
+barrows_sf <- barrows_df |> sf::st_as_sf(
+  coords=c("longitude","latitude"),
+  crs=4326) #projected to work with mapview, will reproject to Irish Transverse Mercator (ITM) (EPSG:2157)
+  #also the land cover data is epsg 4326
+
+mapview(head(barrows_sf,100)) #showing the first 100 points
+head(barrows_sf)
+
+```
+
+Get the stone circles point data into an sf object, combine with barrows and give both a new 'type' field
+
+Get the polygon shapefile of ireland for the viewing window
+
+Transform the fairy monuments file into a ppp object and visualize inside of ireland shapefile
+
+INSTEAD of using a population intensity function for the simulations, will use an area calculation. We will see if a higher proportion of fairies lives in a habitat than would be expected for the area of that habitat
+
+Our second hypothesis will be average distance from fairy circles AND what habitats those fairy circles were built in (using a similar simmulation probably)
+
