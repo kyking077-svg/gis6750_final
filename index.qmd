@@ -462,7 +462,9 @@ runtime
 library(pbapply)
 ```
 
-```{r}
+This is what I ran to do the monte carlo simulations. I never want to run that again, but here is the code
+
+
 #Now we are running 999 simulations wahoooo
 
 compute_quadrat_counts <- function(sim_ppp) { #making a function to apply to all the sims
@@ -487,4 +489,10 @@ full_count_df <- as_tibble(sims_habitat_counts) |> t() |> as_tibble() #smoosh th
 colnames(full_count_df) <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies") #label columns
 full_count_df |> head() #tada!
 
+
+
+```{r}
+#write_csv(full_count_df, "data/raw/monte_carlo_sims.csv") done after code above
+
+monte_carlo_df <- read_csv('data/raw/monte_carlo_sims.csv')
 ```
