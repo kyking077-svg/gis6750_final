@@ -254,7 +254,7 @@ Get the polygon shapefile of ireland for the viewing window
 ```{r}
 #| label: getting ireland shapefile 2
 
-ireland <- ne_countries(country = "ireland", scale="large")
+ireland <- ne_countries(country = "ireland", scale="large") |> select(name,geometry)
 mapview(ireland)
 
 ireland <- ireland |> sf::st_transform(2157)
@@ -360,3 +360,85 @@ Full land cover reclassification table available in data README. Original land c
 
 
 Our second hypothesis will be average distance from fairy circles AND what habitats those fairy circles were built in (using a similar simmulation probably)
+
+Turning the classified raster into polygons so we can start doing the simulations
+
+```{r}
+#| label: raster into polygons
+lc_poly_1990 <- as.polygons(rc_lc_1990)
+
+# turning it into an sf object
+lc_poly_sf <- st_as_sf(lc_poly_1990)
+
+#dissolving the polygons so we can do an area calculation
+lc_poly_sf <- lc_poly_sf |>
+  group_by(U2000_CLC1990_V2020_20u1) |>
+  summarise()
+
+lc_poly_sf <- st_transform(lc_poly_sf, 2157)
+lc_poly_sf <- st_intersection(lc_poly_sf, ireland) #clipping the polygons so the borders are the same as my viewing window
+
+mapview(lc_poly_sf, zcol = "U2000_CLC1990_V2020_20u1")
+
+```
+
+
+
+Generating test statistic!
+```{r}
+#| label: barrow counts by habitat
+#making lc into a tesselation
+lc_list <- split(lc_poly_sf, lc_poly_sf$U2000_CLC1990_V2020_20u1) #grabbing individual polygons
+lc_tiles <- lapply(lc_list, as.owin) #each one as a window
+
+#tesselation of the polygon windows
+lc_tess <- tess(tiles = lc_tiles)
+
+#now the test statistic
+obs_barrow_counts <- quadratcount(barrows_ppp, tess=lc_tess) |> as.vector()
+names(obs_barrow_counts) <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies")
+obs_barrow_counts <- obs_barrow_counts |> as_tibble_row()
+```
+
+The test statistic: Referencing the literature, it is believed that fairies prefer forested habitats, which offer readily available hollow trees, babbling streams, and mossy grottos. Our first hypothesis, therefore, is that fairies prefer to make their homes in forests.
+
+```{r}
+obs_barrow_counts
+```
+
+
+habitat 'intensity', which gives the proportional probability of any point existing in each habitat type (based on area)
+```{r}
+#| label: habitat intensity function
+tile_areas <- sapply(lc_tiles, area.owin) #the area of each tile
+tile_probs <- tile_areas / sum(tile_areas) #getting the proportions
+
+habitat_prob_intensity <- function(x, y) { #intensity function for probability of points being in each habitat
+  sapply(seq_along(lc_tiles), function(i) {
+    inside.owin(x, y, lc_tiles[[i]]) * tile_probs[i]
+  }) |> rowSums()
+}
+```
+
+
+## Monte Carlo Simulations
+```{r}
+num_barrows <- nrow(barrows_sf)
+
+#creating a function that will plot barrows around ireland according to the area proportions of the various habitats
+gen_barrows_sim <- function() {
+  barrows_sim <- rpoint(n=num_barrows,f=habitat_prob_intensity, win=barrows_ppp$window)
+  return(barrows_sim) 
+}
+
+single_barrows_sim_ppp <- gen_barrows_sim()
+single_barrows_sim_ppp |> sf::st_as_sf() |> ggplot() +
+    geom_sf() +
+    theme_classic()
+
+#IT WORKED!!! YAYYYYYY
+single_barrow_sim_counts <- quadratcount(single_barrows_sim_ppp, tess=lc_tess) |> as.vector()
+names(single_barrow_sim_counts) <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies")
+single_barrow_sim_counts <- single_barrow_sim_counts |> as_tibble_row()
+single_barrow_sim_counts
+```
