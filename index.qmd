@@ -10,7 +10,7 @@ bibliography: references.bib
 
 ## Abstract
 
-The purpose of this project is to investigate whether Ireland is caring for its historic fairy habitats. Because fairies are notorious for obstructing data collection and interfering with computer calculations, there is very little data available on fairy habitats and their preservation. This is a two-part project, where we first determine where fairies prefer to live, and then assess whether their preferred habitat is flourishing. Data collected (with much sacrifice) on the location of fairy barrows (homes) will be converted into a density layer to determine where fairy barrows are most densely clustered. Next, land cover data from 1990 will be compared to the barrow density to determine which habitat fairies prefer. Finally, land cover data from 2018 will be compared to the 1990 dataset, to produce a change matrix, and identify whether Irish fairy habitat remains intact.
+The purpose of this project is to investigate whether Ireland is caring for its historic fairy habitats. Because fairies are notorious for obstructing data collection and interfering with computer calculations, there is very little data available on fairy habitats and their preservation. This is a two-part project, where we first determine where fairies prefer to live, and then assess whether their preferred habitat is flourishing. Data collected (with much sacrifice) on the location of fairy barrows (homes) will be converted into a density layer to determine where fairy barrows are most densely clustered. Next, land cover data from 1990 will be compared to the barrow density to determine which habitat fairies prefer. To test whether fairies cluster near stone circles, rather than a particular habitat, a pairwise correlation analysis will be done on the average distance of fairy barrows from nearby stone circles. The preferred habitat for stone circles will also be noted. Finally, land cover data from 2018 will be compared to the 1990 dataset, to produce a change matrix, and identify whether Irish fairy habitat remains intact.
 
 ## Literature Review
 
@@ -269,7 +269,7 @@ Transform the fairy monuments file into a ppp object and visualize inside of ire
 barrows_sf <- barrows_sf |> sf::st_transform(2157)
 #some of the points are outside my ireland shapefile, so I am going to remove them (since I have thousands)
 barrows_sf <- barrows_sf[st_within(barrows_sf, ireland, sparse = FALSE), ] 
-barrows_ppp <- as.ppp(barrows_sf, W=as.owin(ireland)) #ah, we do have to do a little bit of convex hull
+barrows_ppp <- as.ppp(barrows_sf, W=as.owin(ireland)) 
 barrows_ppp |> sf::st_as_sf() |> ggplot() +
     geom_sf() +
     theme_classic()
@@ -281,7 +281,7 @@ barrows_ppp |> sf::st_as_sf() |> ggplot() +
 stone_circles_sf <- stone_circles_sf |> sf::st_transform(2157)
 #some of the points are outside my ireland shapefile, so I am going to remove them (since I have thousands)
 stone_circles_sf <- stone_circles_sf[st_within(stone_circles_sf, ireland, sparse = FALSE), ] 
-stone_circles_ppp <- as.ppp(stone_circles_sf, W=as.owin(ireland)) #ah, we do have to do a little bit of convex hull
+stone_circles_ppp <- as.ppp(stone_circles_sf, W=as.owin(ireland)) 
 stone_circles_ppp |> sf::st_as_sf() |> ggplot() +
     geom_sf() +
     theme_classic()
@@ -408,7 +408,7 @@ obs_barrow_counts
 
 
 habitat 'intensity', which gives the proportional probability of any point existing in each habitat type (based on area)
-```{r}
+
 #| label: habitat intensity function
 tile_areas <- sapply(lc_tiles, area.owin) #the area of each tile
 tile_probs <- tile_areas / sum(tile_areas) #getting the proportions
@@ -418,27 +418,73 @@ habitat_prob_intensity <- function(x, y) { #intensity function for probability o
     inside.owin(x, y, lc_tiles[[i]]) * tile_probs[i]
   }) |> rowSums()
 }
+
+
+```{r}
+#new habitat prob intensity, to try and make this run faster
+tile_areas <- sapply(lc_tiles, area.owin) #the area of each tile
+tile_probs <- tile_areas / sum(tile_areas) #getting the proportions
+
+habitat_prob_intensity <- function(x, y) {
+  coords <- cbind(x, y)
+  cell_vals <- terra::extract(rc_lc_1990, coords)[,1] #pulls out the habitat value the point lands on top of
+  cell_vals[is.na(cell_vals) | is.nan(cell_vals) | cell_vals < 1 | cell_vals > length(tile_probs)] <- 1 #prevent error by keeping everything in range
+
+  probs <- tile_probs[cell_vals] #assigning the probabilties
+  
+  probs[is.na(probs)] <- 0 #preventing errors with NA by making them 0
+  return(probs)
+}
 ```
 
-
 ## Monte Carlo Simulations
+
 ```{r}
-num_barrows <- nrow(barrows_sf)
+
+num_barrows <- nrow(barrows_sf)#to set number of points to sample
 
 #creating a function that will plot barrows around ireland according to the area proportions of the various habitats
-gen_barrows_sim <- function() {
+#and checking the runtime to make sure we can do the full 999 sims
+runtime <- system.time({gen_barrows_sim <- function() {
   barrows_sim <- rpoint(n=num_barrows,f=habitat_prob_intensity, win=barrows_ppp$window)
   return(barrows_sim) 
 }
 
-single_barrows_sim_ppp <- gen_barrows_sim()
-single_barrows_sim_ppp |> sf::st_as_sf() |> ggplot() +
-    geom_sf() +
-    theme_classic()
-
 #IT WORKED!!! YAYYYYYY
 single_barrow_sim_counts <- quadratcount(single_barrows_sim_ppp, tess=lc_tess) |> as.vector()
 names(single_barrow_sim_counts) <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies")
-single_barrow_sim_counts <- single_barrow_sim_counts |> as_tibble_row()
+single_barrow_sim_counts <- single_barrow_sim_counts |> as_tibble_row()})
 single_barrow_sim_counts
+runtime
+```
+
+```{r}
+library(pbapply)
+```
+
+```{r}
+#Now we are running 999 simulations wahoooo
+
+compute_quadrat_counts <- function(sim_ppp) { #making a function to apply to all the sims
+  sim_counts <- quadratcount(sim_ppp, tess=lc_tess) |> as.vector()
+  names(sim_counts) <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies")
+  return(sim_counts)
+}
+
+gen_sims_ppp <- function(num_sims) { #function to generate 999 ppp simulations
+  barrows_sims <- spatstat.random::rpoint(
+    n = num_barrows,
+    f = habitat_prob_intensity,
+    win = barrows_ppp$window,
+    nsim = num_sims
+  )
+  return(barrows_sims)
+}
+
+sims_list <- gen_sims_ppp(999) #simulations
+sims_habitat_counts <- pbapply::pblapply(sims_list, FUN=compute_quadrat_counts) #apply counts function, with a progress bar from pbapply
+full_count_df <- as_tibble(sims_habitat_counts) |> t() |> as_tibble() #smoosh them together
+colnames(full_count_df) <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies") #label columns
+full_count_df |> head() #tada!
+
 ```
