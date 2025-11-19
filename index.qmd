@@ -458,13 +458,11 @@ single_barrow_sim_counts
 runtime
 ```
 
-```{r}
-library(pbapply)
-```
+
 
 This is what I ran to do the monte carlo simulations. I never want to run that again, but here is the code
 
-
+library(pbapply)
 #Now we are running 999 simulations wahoooo
 
 compute_quadrat_counts <- function(sim_ppp) { #making a function to apply to all the sims
@@ -489,6 +487,8 @@ full_count_df <- as_tibble(sims_habitat_counts) |> t() |> as_tibble() #smoosh th
 colnames(full_count_df) <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies") #label columns
 full_count_df |> head() #tada!
 
+#this took two hours
+
 
 
 ```{r}
@@ -496,3 +496,92 @@ full_count_df |> head() #tada!
 
 monte_carlo_df <- read_csv('data/raw/monte_carlo_sims.csv')
 ```
+
+# Hypothesis Testing
+
+Alright now we need to test hypothesis 1 against the test statistic from earlier. Hypothesis 1 is something like 'fairies prefer forest habitat' because of a couple poems I'll write down later. I have a sneaking suspicion that this will not end up being true, so I will likely run the hypothesis test on every habitat type
+
+Let's plot those statistics, shall we
+
+```{r}
+#have to rename my categories actually so they work with the histograms
+names(monte_carlo_df) <- c("Dense_Human_Habitat", "Human_Agriculture", "Forests", "Grass_and_Shrublands","Rocky_Barren_Snowy","Wetlands","Water_Bodies")
+
+names(obs_barrow_counts) <- c("Dense_Human_Habitat", "Human_Agriculture", "Forests", "Grass_and_Shrublands","Rocky_Barren_Snowy","Wetlands","Water_Bodies")
+```
+
+```{r}
+#| label: forests distribution
+  mc_df <- bind_rows(monte_carlo_df, obs_barrow_counts)
+  monte_carlo_df |> ggplot(aes(x=Forests)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_barrow_counts$Forests, color = "darkgreen") +
+    theme_classic()
+#hahahaha turns out that's way lower, so they actually AVOID forests. What a fun finding!
+
+```
+
+```{r}
+#| label: dense human distribution
+  monte_carlo_df |> ggplot(aes(x=Dense_Human_Habitat)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_barrow_counts$Dense_Human_Habitat, color = "red") +
+    theme_classic()
+#We're pretty close to the bounds for that one
+
+```
+
+
+```{r}
+#| label: human agriculture
+  monte_carlo_df |> ggplot(aes(x=Human_Agriculture)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_barrow_counts$Human_Agriculture, color = "orange") +
+    theme_classic()
+#WOW that's way higher, which is not what I was expecting. Will have to comment on this
+
+```
+
+```{r}
+#| label: grass and shrublands
+  monte_carlo_df |> ggplot(aes(x=Grass_and_Shrublands)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_barrow_counts$Grass_and_Shrublands, color = "green") +
+    theme_classic()
+#We're pretty close to the bounds for that one too
+
+```
+
+```{r}
+#| label: rocky, barren, and snowy
+  monte_carlo_df |> ggplot(aes(x=Rocky_Barren_Snowy)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_barrow_counts$Rocky_Barren_Snowy) +
+    theme_classic()
+#Far below, they DONT like these spots
+
+```
+
+```{r}
+#| label: wetlands
+  monte_carlo_df |> ggplot(aes(x=Wetlands)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_barrow_counts$Wetlands, color = "lightblue") +
+    theme_classic()
+#Far below, they DONT like these spots either
+
+```
+
+```{r}
+#| label: water bodies
+  monte_carlo_df |> ggplot(aes(x=Water_Bodies)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_barrow_counts$Water_Bodies, color = "blue") +
+    theme_classic()
+#Far below, they DONT like these spots either either
+
+```
+
+It appears that they might have clustering, in human agriculture, and avoid some of the other areas! (of course this technically makes sense because 'fairy barrows' are actually ancient human burial mounds, so they would be found in populated areas, but we're talking about fairies here)
+
+So! Onto hypothesis 2: Do they have any relationship to the distance from stone circles aka portals to the fairy realm?
