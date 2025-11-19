@@ -584,4 +584,52 @@ names(obs_barrow_counts) <- c("Dense_Human_Habitat", "Human_Agriculture", "Fores
 
 It appears that they might have clustering, in human agriculture, and avoid some of the other areas! (of course this technically makes sense because 'fairy barrows' are actually ancient human burial mounds, so they would be found in populated areas, but we're talking about fairies here)
 
+# P value calculations
+which I'm not doing right now, but this is the code for them
+```{r}
+#| label: p value calculations
+
+human_hab_count_more_extreme <- mc_df |> filter(Dense_Human_Habitat >= obs_barrow_counts$Dense_Human_Habitat)
+human_hab_p_val <- nrow(human_hab_count_more_extreme) / nrow(mc_df)
+
+ag_count_more_extreme <- mc_df |> filter(Human_Agriculture >= obs_barrow_counts$Human_Agriculture)
+ag_p_val <- nrow(ag_count_more_extreme) / nrow(mc_df)
+
+forest_count_more_extreme <- mc_df |> filter(Forests >= obs_barrow_counts$Forests)
+forest_p_val <- nrow(forest_count_more_extreme) / nrow(mc_df)
+
+grass_shrub_count_more_extreme <- mc_df |> filter(Grass_and_Shrublands >= obs_barrow_counts$Grass_and_Shrublands)
+grass_shrub_p_val <- nrow(grass_shrub_count_more_extreme) / nrow(mc_df)
+
+barren_count_more_extreme <- mc_df |> filter(Rocky_Barren_Snowy >= obs_barrow_counts$Rocky_Barren_Snowy)
+barren_p_val <- nrow(barren_count_more_extreme) / nrow(mc_df)
+
+wetland_count_more_extreme <- mc_df |> filter(Wetlands >= obs_barrow_counts$Wetlands)
+wetland_p_val <- nrow(wetland_count_more_extreme) / nrow(mc_df)
+
+water_count_more_extreme <- mc_df |> filter(Water_Bodies >= obs_barrow_counts$Water_Bodies)
+water_p_val <- nrow(water_count_more_extreme) / nrow(mc_df)
+
+
+
+#I could make this into a df instead of doing this way huh?
+
+print("P-values by habitat:")
+print(paste("Dense Human Habitat:",human_hab_p_val))
+print(paste("Human Agriculture:",ag_p_val))
+print(paste("Forest:",forest_p_val))
+print(paste("Grass and Shrublands:",grass_shrub_p_val))
+print(paste("Rocky, Barren, and Snowy:",barren_p_val))
+print(paste("Wetlands:",wetland_p_val))
+print(paste("Water Bodies:",water_p_val))
+
+#so out of all of these only agriculture is truly significant, but all the '1'basically means the true count was WAY lower than the expected count, which is also significant, and I'll work on that in a bit
+p_values <- c(human_hab_p_val, ag_p_val, forest_p_val, grass_shrub_p_val, barren_p_val, wetland_p_val,water_p_val)
+p_val_greater_df <- data.frame(habitat = lc_labels, p_value = p_values)
+print(p_val_greater_df)
+
+```
+
+Something something despite stories, perhaps fairy hunting grounds are different than their preferred living situations, maybe should have another hypothesis that tests whether they avoid certain habitats for their homes (which would be forests, barren, wetlands, water bodies dont really count)
+
 So! Onto hypothesis 2: Do they have any relationship to the distance from stone circles aka portals to the fairy realm?
