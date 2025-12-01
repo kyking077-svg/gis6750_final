@@ -504,7 +504,7 @@ runtime <- system.time({gen_barrows_sim <- function() {
   barrows_sim <- rpoint(n=num_barrows,f=habitat_prob_intensity, win=barrows_ppp$window)
   return(barrows_sim) 
 }
-
+single_barrows_sim_ppp <- gen_barrows_sim()
 #IT WORKED!!! YAYYYYYY
 single_barrow_sim_counts <- quadratcount(single_barrows_sim_ppp, tess=lc_tess) |> as.vector()
 names(single_barrow_sim_counts) <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies")
@@ -516,8 +516,10 @@ runtime
 
 
 This is what I ran to do the monte carlo simulations. I never want to run that again, but here is the code
+OK and I do have to run this again and save sims_list so that we have the points for the distance calculation, unfortunately
 
-library(pbapply)
+```{r}
+library('pbapply')
 #Now we are running 999 simulations wahoooo
 
 compute_quadrat_counts <- function(sim_ppp) { #making a function to apply to all the sims
@@ -543,14 +545,17 @@ colnames(full_count_df) <- c("Dense Human Habitat", "Human Agriculture", "Forest
 full_count_df |> head() #tada!
 
 #this took two hours
-
+```
 
 
 ```{r}
-#write_csv(full_count_df, "data/raw/monte_carlo_sims.csv") done after code above
-#should have also saved the sims_list of points, that would have been useful, but maybe too big??
+#write_csv(full_count_df, "data/raw/monte_carlo_sims.csv") #done after code above
+#saveRDS(sims_list, "data/raw/sims_ppplist.rds")
 
+#reading them back in after saving
 monte_carlo_df <- read_csv('data/raw/monte_carlo_sims.csv')
+sims_ppplist <- readRDS("data/raw/sims_ppplist.rds")
+
 ```
 
 # Hypothesis Testing
