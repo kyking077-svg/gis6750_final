@@ -326,8 +326,15 @@ barrows_sf <- barrows_sf |> sf::st_transform(2157)
 barrows_sf <- barrows_sf[st_within(barrows_sf, ireland, sparse = FALSE), ] 
 barrows_ppp <- as.ppp(barrows_sf, W=as.owin(ireland)) 
 barrows_ppp |> sf::st_as_sf() |> ggplot() +
-    geom_sf() +
-    theme_classic()
+    geom_sf(size = 1) +
+    theme_classic() +
+    labs(title = "Fairy Barrows") + theme(
+  plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank()
+  )
+
 
 ```
 
@@ -339,7 +346,12 @@ stone_circles_sf <- stone_circles_sf[st_within(stone_circles_sf, ireland, sparse
 stone_circles_ppp <- as.ppp(stone_circles_sf, W=as.owin(ireland)) 
 stone_circles_ppp |> sf::st_as_sf() |> ggplot() +
     geom_sf() +
-    theme_classic()
+    theme_classic() +     
+    labs(title = "Stone Circles") + theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank()
+  )
 
 ```
 
@@ -391,7 +403,7 @@ rc_lc_1990 <- classify(lc_1990, rclmat, include.lowest=TRUE)
 #creating the color library for the classes
 lc_colors <- data.frame(
   value = c(1, 2, 3, 4, 5, 6, 7),
-  color = c("#8B0000", "#F5DEB3", "#006400", "#556B2F","#8B7355", "#7FFFD4", "#1E90FF")
+  color = c("#8B0000", "#F5DEB3", "#006400", "#99ec0aff","#8B7355", "#7FFFD4", "#1E90FF")
 )
 
 lc_labels <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies")
@@ -492,7 +504,7 @@ habitat_prob_intensity <- function(x, y) {
 }
 ```
 
-## Monte Carlo Simulations
+## Monte Carlo Simulations: Barrows
 
 ```{r}
 
@@ -554,11 +566,13 @@ full_count_df |> head() #tada!
 
 #reading them back in after saving
 monte_carlo_df <- read_csv('data/raw/monte_carlo_sims.csv')
-sims_ppplist <- readRDS("data/raw/sims_ppplist.rds")
+barrows_sims_ppplist <- readRDS("data/raw/sims_ppplist.rds")
 
 ```
 
 # Hypothesis Testing
+
+## Hypothesis 1: Barrow Preferred Habitats
 
 Alright now we need to test hypothesis 1 against the test statistic from earlier. Hypothesis 1 is something like 'fairies prefer forest habitat' because of a couple poems I'll write down later. I have a sneaking suspicion that this will not end up being true, so I will likely run the hypothesis test on every habitat type
 
@@ -699,3 +713,338 @@ I think we need to get the mean distance of each point to its CLOSEST stone circ
 Yes, we can do nearest neighbor calculations and select only the minimum distance ones
 
 ah gosh dangit, I never saved the simulated points, only the counts. That's awkward
+saved them!
+
+## Hypothesis 2: Proximity to Stone Circles
+
+Now we are going to have to run some distence calculations to see if barrows cluster around stone circles. 
+```{r}
+#| label: calculating test statistic of nearest neighbor distances
+obs_dists_sc <- nncross(barrows_ppp, stone_circles_ppp)$dist
+mean_obs_dists <- mean(obs_dists_sc)
+```
+
+```{r}
+mean_obs_dists
+```
+
+```{r}
+#| label: creating the distance function for the whole dataset
+compute_mean_dist <- function(sim_ppp) {
+  sim_dists <- nncross(sim_ppp, stone_circles_ppp)$dist
+  mean(sim_dists)
+}
+
+sim_distances <- lapply(X=barrows_sims_ppplist, FUN=compute_mean_dist)
+
+```
+
+```{r}
+#| label: visualizing mean distance null distribution
+
+sim_dist_df <- unlist(sim_distances) |> as_tibble()
+obs_dist_df <- tibble(value = mean_obs_dists)
+all_dists_df <- rbind(sim_dist_df,obs_dist_df)
+all_dists_df |> ggplot(aes(x=value)) +
+  geom_histogram(fill='black', alpha=0.5) +
+  geom_vline(xintercept = mean_obs_dists, color='darkorchid4') +
+  theme_classic()
+```
+
+Interpretation: The fairies appear to live much closer to the stone circles than predicted
+
+```{r}
+#| label: computing distance p value
+
+count_more_extreme <- all_dists_df |> filter(value >= mean_obs_dists)
+sc_dist_p_val <- nrow(count_more_extreme) / nrow(all_dists_df)
+sc_dist_p_val
+```
+
+basically all of the dataset is more extreme than the observed distance statistic. Wait, this would mean that they are FAR closer to the stone circles than they would be if randomly distributed. WOOOOO!
+
+## Hypothesis 3: Stone Circle Primary Habitats
+Now that we have determined that stone circle location is related to where fairies create their homes, and with resounding theories that they form in habitats that are similar to that of the fairy realm, let us run a simulation to see if the stone circles appear in any habitat more than the rest. We must preserve these locations
+
+## Monte Carlo Simulations: Stone Circles
+
+```{r}
+num_circles <- nrow(stone_circles_sf) #to set number of points to sample
+
+#creating a function that will plot barrows around ireland according to the area proportions of the various habitats
+#and checking the runtime to make sure we can do the full 999 sims
+runtime <- system.time({gen_circles_sim <- function() {
+  circles_sim <- rpoint(n=num_circles,f=habitat_prob_intensity, win=stone_circles_ppp$window)
+  return(circles_sim) 
+}
+single_circles_sim_ppp <- gen_circles_sim()
+#IT WORKED!!! YAYYYYYY
+single_circle_sim_counts <- quadratcount(single_circles_sim_ppp, tess=lc_tess) |> as.vector()
+names(single_circle_sim_counts) <- c("Dense_Human_Habitat", "Human_Agriculture", "Forests", "Grass_and_Shrublands","Rocky_Barren_Snowy","Wetlands","Water_Bodies")
+single_circle_sim_counts <- single_circle_sim_counts |> as_tibble_row()})
+single_circle_sim_counts
+runtime
+
+```
+
+now to take a little while again
+
+```{r}
+library('pbapply')
+#Now we are running 999 simulations wahoooo
+
+compute_quadrat_counts <- function(sim_ppp) { #making a function to apply to all the sims
+  sim_counts <- quadratcount(sim_ppp, tess=lc_tess) |> as.vector()
+  names(sim_counts) <- c("Dense_Human_Habitat", "Human_Agriculture", "Forests", "Grass_and_Shrublands","Rocky_Barren_Snowy","Wetlands","Water_Bodies")
+  return(sim_counts)
+}
+
+gen_sims_ppp <- function(num_sims) { #function to generate 999 ppp simulations
+  stone_circle_sims <- spatstat.random::rpoint(
+    n = num_circles,
+    f = habitat_prob_intensity,
+    win = stone_circles_ppp$window,
+    nsim = num_sims
+  )
+  return(stone_circle_sims)
+}
+
+sc_sims_list <- gen_sims_ppp(999) #simulations
+sc_habitat_counts <- pbapply::pblapply(sc_sims_list, FUN=compute_quadrat_counts) #apply counts function, with a progress bar from pbapply
+sc_count_df <- as_tibble(sc_habitat_counts) |> t() |> as_tibble() #smoosh them together
+colnames(sc_count_df) <- c("Dense_Human_Habitat", "Human_Agriculture", "Forests", "Grass_and_Shrublands","Rocky_Barren_Snowy","Wetlands","Water_Bodies") #label columns
+sc_count_df |> head() #tada!
+
+#this took two hours
+```
+
+```{r}
+#saving so we dont have to do that again either
+#write_csv(sc_count_df, "data/raw/sc_monte_carlo_sims.csv") #done after code above
+sc_monte_carlo_df <- read_csv('data/raw/sc_monte_carlo_sims.csv')
+```
+
+Now to generate that test statistic, we are slightly out of order here
+
+```{r}
+obs_sc_counts <- quadratcount(stone_circles_ppp, tess=lc_tess) |> as.vector()
+names(obs_sc_counts) <- c("Dense_Human_Habitat", "Human_Agriculture", "Forests", "Grass_and_Shrublands","Rocky_Barren_Snowy","Wetlands","Water_Bodies")
+obs_sc_counts <- obs_sc_counts |> as_tibble_row()
+```
+
+```{r}
+obs_sc_counts
+```
+
+And the distributions for all habitats
+
+```{r}
+#| label: forests distribution stone circles
+  sc_df <- bind_rows(sc_count_df, obs_sc_counts)
+  sc_count_df |> ggplot(aes(x=Forests)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_sc_counts$Forests, color = "darkgreen") +
+    theme_classic()
+#right on target, so nothing special there
+
+```
+
+```{r}
+#| label: dense human distribution stone circles
+  sc_count_df |> ggplot(aes(x=Dense_Human_Habitat)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_sc_counts$Dense_Human_Habitat, color = "red") +
+    theme_classic()
+#also just about right
+
+```
+
+
+```{r}
+#| label: human agriculture stone circles
+  sc_count_df |> ggplot(aes(x=Human_Agriculture)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_sc_counts$Human_Agriculture, color = "orange") +
+    theme_classic()
+#right in the middle
+
+```
+
+```{r}
+#| label: grass and shrublands stone circles
+  sc_count_df |> ggplot(aes(x=Grass_and_Shrublands)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_sc_counts$Grass_and_Shrublands, color = "green") +
+    theme_classic()
+#high for this one! nice!
+
+```
+
+```{r}
+#| label: rocky, barren, and snowy stone circles
+  sc_count_df |> ggplot(aes(x=Rocky_Barren_Snowy)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_sc_counts$Rocky_Barren_Snowy) +
+    theme_classic()
+#eh maybe higher, not a great distribution though
+
+```
+
+```{r}
+#| label: wetlands stone circles
+  sc_count_df |> ggplot(aes(x=Wetlands)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_sc_counts$Wetlands, color = "lightblue") +
+    theme_classic()
+#in the middle
+
+```
+
+```{r}
+#| label: water bodies
+  sc_count_df |> ggplot(aes(x=Water_Bodies)) +
+    geom_bar(stat='count') +
+    geom_vline(xintercept = obs_sc_counts$Water_Bodies, color = "blue") +
+    theme_classic()
+#Far below, makes sense though, maybe put something about avoiding running water
+
+```
+
+It appears that there may be clustering in grasslands! Or at least a slight preference
+
+# P value calculations for stone circles
+```{r}
+#| label: p value calculations for stone circle
+
+human_hab_count_more_extreme_sc <- sc_df |> filter(Dense_Human_Habitat >= obs_sc_counts$Dense_Human_Habitat)
+human_hab_p_val_sc <- nrow(human_hab_count_more_extreme_sc) / nrow(sc_df)
+
+ag_count_more_extreme_sc <- sc_df |> filter(Human_Agriculture >= obs_sc_counts$Human_Agriculture)
+ag_p_val_sc <- nrow(ag_count_more_extreme_sc) / nrow(sc_df)
+
+forest_count_more_extreme_sc <- sc_df |> filter(Forests >= obs_sc_counts$Forests)
+forest_p_val_sc <- nrow(forest_count_more_extreme_sc) / nrow(sc_df)
+
+grass_shrub_count_more_extreme_sc <- sc_df |> filter(Grass_and_Shrublands >= obs_sc_counts$Grass_and_Shrublands)
+grass_shrub_p_val_sc <- nrow(grass_shrub_count_more_extreme_sc) / nrow(sc_df)
+
+barren_count_more_extreme_sc <- sc_df |> filter(Rocky_Barren_Snowy >= obs_sc_counts$Rocky_Barren_Snowy)
+barren_p_val_sc <- nrow(barren_count_more_extreme_sc) / nrow(sc_df)
+
+wetland_count_more_extreme_sc <- sc_df |> filter(Wetlands >= obs_sc_counts$Wetlands)
+wetland_p_val_sc <- nrow(wetland_count_more_extreme_sc) / nrow(sc_df)
+
+water_count_more_extreme_sc <- sc_df |> filter(Water_Bodies >= obs_sc_counts$Water_Bodies)
+water_p_val_sc <- nrow(water_count_more_extreme_sc) / nrow(sc_df)
+
+
+p_values_sc <- c(human_hab_p_val_sc, ag_p_val_sc, forest_p_val_sc, grass_shrub_p_val_sc, barren_p_val_sc, wetland_p_val_sc,water_p_val_sc)
+p_val_greater_df_sc <- data.frame(habitat = lc_labels, p_value = p_values_sc)
+print(p_val_greater_df_sc)
+
+```
+
+Excellent, so this provides evidence that fairies prefer to build their circles in grass and shrublands!
+
+# Land Cover Change Analysis
+
+Time to see if we have lost grass and shrubland area! Thankfully we already have the 1990 reclassified raster, and need to do the same thing for 2018
+
+```{r}
+#| label: land cover change analysis, grasslands
+#reclassifying the 2018 data
+rc_lc_2018 <- classify(lc_2018, rclmat, include.lowest=TRUE)
+plot(rc_lc_1990, col = lc_colors, type = "classes", main = "Reclassified Land Cover: 1990")
+plot(rc_lc_2018, col = lc_colors, type = "classes", main = "Reclassified Land Cover: 2018")
+
+#realigning the pixels to make sure they're on top of each other
+rc_lc_2018 <- resample(rc_lc_2018, rc_lc_1990, method = "near")
+
+
+#stacking the raster so the pixels are paired
+lc_stack <- c(rc_lc_1990, rc_lc_2018)
+names(lc_stack) <- c("1990", "2018")
+
+#changing the column/row names
+lc_class_names <- c(
+  "1" = "Dense_Human_Habitat",
+  "2" = "Human_Agriculture",
+  "3" = "Forests",
+  "4" = "Grass_and_Shrublands",
+  "5" = "Rocky_Barren_Snowy",
+  "6" = "Wetlands",
+  "7" = "Water_Bodies"
+)
+
+change_matrix <- crosstab(lc_stack, long = FALSE)
+colnames(change_matrix) <- lc_class_names[colnames(change_matrix)]
+rownames(change_matrix) <- lc_class_names[rownames(change_matrix)]
+
+change_matrix
+
+```
+
+Now that we have the change matrix (which I'll make a pretty chart for), I want to map the pixels that started as grasslands, became grasslands, or grasslands that were lost
+
+```{r}
+# we know our grass and shrublands are class 4
+grass_code <- 4
+
+#this got complicated quick, but basically I had to make an ireland-shaped polygon of nothing, with pixels where grassland exists
+grass_1990_r <- rc_lc_1990
+values(grass_1990_r) <- ifelse(is.na(values(rc_lc_1990)), NA,
+                               values(rc_lc_1990) == grass_code)
+
+grass_2018_r <- rc_lc_2018
+values(grass_2018_r) <- ifelse(is.na(values(rc_lc_2018)), NA,
+                               values(rc_lc_2018) == grass_code)
+
+# now I have to make a little transition raster that's also an empty ireland-shaped polygon of nothing
+transition <- rc_lc_1990
+values(transition) <- NA
+
+# and make sure we only update the cells that are inside the original land cover raster (this got so technical)
+valid <- !is.na(values(rc_lc_1990))
+
+#now I'm making my new transition classes all about grassland
+values(transition)[valid & values(grass_1990_r) & values(grass_2018_r)] <- 1  #stayed as grassland
+values(transition)[valid & !values(grass_1990_r) & values(grass_2018_r)] <- 2 #new grassland
+values(transition)[valid & values(grass_1990_r) & !values(grass_2018_r)] <- 3 #lost grassland
+values(transition)[valid & !values(grass_1990_r) & !values(grass_2018_r)] <- 0 #never grassland
+
+#and plotting
+transition_colors <- c("grey80","darkgreen","lightgreen","saddlebrown")
+plot(transition, col = transition_colors, type="classes",
+     main="Grass and Shrublands Transitions", axes=TRUE)
+
+```
+
+And I want the real numbers of the transition, so we're going back to the change matrix to grab those
+
+```{r}
+persistent <- change_matrix["Grass_and_Shrublands","Grass_and_Shrublands"]
+gain <- sum(change_matrix[-which(rownames(change_matrix)=="Grass_and_Shrublands"),
+                         "Grass_and_Shrublands"]) #anything that didnt have grass in 1990 but does in 2018
+
+loss <- sum(change_matrix["Grass_and_Shrublands",
+                          -which(colnames(change_matrix)=="Grass_and_Shrublands")]) #grass in 1990 but not in 2018
+
+never_grass <- sum(change_matrix[-which(rownames(change_matrix)=="Grass_and_Shrublands"),
+                               -which(colnames(change_matrix)=="Grass_and_Shrublands")]) #never grass
+
+grass_summary <- c(Persistent = persistent,
+                   Gain = gain,
+                   Loss = loss,
+                   Never_Grass = never_grass)
+print(grass_summary)
+
+#and checking that the raster has the proper pixels, which it does!
+pixel_counts <- freq(transition)
+
+print(pixel_counts)
+
+
+```
+
+in the 1990 land cover data, 153237 of the 20780550 pixels were grass and shrubland. This is 0.737% of the total pixels.
+172092 pixels were grass and shrubland in 2018, which is 0.828% of the total pixels. We're dealing with very small numbers here, and a very limited habitat for stone circle construction!
