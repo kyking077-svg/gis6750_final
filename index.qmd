@@ -1,5 +1,5 @@
 ---
-title: Kylie King's DSAN 6750 GIS project
+title: Finding the Fair Folk
 authors:
   - name: Kylie King
     affiliation: Georgetown University
@@ -13,7 +13,7 @@ bibliography: references.bib
 The purpose of this project is to investigate whether Ireland is caring for its historic fairy habitats. Because fairies are notorious for obstructing data collection and interfering with computer calculations, there is very little data available on fairy habitats and their preservation. This is a two-part project, where we first determine where fairies prefer to live, and then assess whether their preferred habitat is flourishing. Data collected (with much sacrifice) on the location of fairy barrows (homes) will be converted into a density layer to determine where fairy barrows are most densely clustered. Next, land cover data from 1990 will be compared to the barrow density to determine which habitat fairies prefer. To test whether fairies cluster near stone circles, rather than a particular habitat, a  will be done on the average distance of fairy barrows from nearby stone circles. The preferred habitat for stone circles will also be noted. Finally, land cover data from 2018 will be compared to the 1990 dataset, to produce a change matrix, and identify whether Irish fairy habitat remains intact.
 
 ## Introduction
-Ireland's human inhabitants share the land with a cryptic, fickle, whimsical species known as the Aes Sídhe. They are also known as the Wee Folk, the Good People, the Fair Folk, or,  most generally, fairies. The ancient name, Aes Sídhe, means *folk of the fairy mounds,* referring to the mounds the fairies live in. These mounds, also known as *barrows,* are found throughout Ireland, and are regarded with superstition and reverence. This caution is well-founded, as those who disturb or damage these mounds are punished with extensive bad luck and guaranteed disaster. 
+Ireland's human inhabitants share the land with a cryptic, fickle, whimsical species known as the Aes Sídhe. They are also known as the Wee Folk, the Good People, the Fair Folk, or,  most generally, fairies. The ancient name, Aes Sídhe, means *folk of the fairy mounds* or *folk of the barrows,* referring to the mounds the fairies live in. These mounds, also known as barrows, are found throughout Ireland, and are regarded with superstition and reverence. This caution is well-founded, as those who disturb or damage these mounds are punished with extensive bad luck and guaranteed disaster. 
 
 Unfortunately, the secreteive (and vengeful) nature of the Folk makes them difficult to study. As a result, modern researchers know very little about their preferred habitats, and the growing climate crisis is leading to worries about habitat suitability for Ireland's Good Neighbors (another moniker). Restless fairies are prone to violent outbursts, which presents a danger to Ireland's human inhabitants. 
 
@@ -50,17 +50,18 @@ barrows: "Barrows are typically defined as circular enclosures of earth and/or s
 
 stone circles: "These circles are characterised by the presence of standing stones, typically made of sandstone or quartz, that are arranged in a circular pattern. Stone circles can range in size from a few metres to over 100 metres in diameter, and they are thought to have served a variety of religious, cultural, and astronomical purposes."
 
-## Methodology
+# Methodology
 To test our hypotheses, the locations of fairy barrows will be compared to land cover data from 1990 to determine whether fairies prefer a certain habitat (first-order clustering). To test whether fairies cluster near stone circles (second-order clustering), rather than a particular habitat, we will compare the average distance of fairy barrows to nearby stone circles. The preferred habitat for stone circle construction will also be tested with the same land cover data, as we have very little information about fairy habits. If any preferred habitats are found, land cover data from 2018 will be compared to the 1990 dataset to produce a change matrix, and identify whether fairy habitat in the Repulic of Ireland remains intact. 
 
-# Study Environment Preparation
-
+## Point Data Preparation
 This study was conducted using R, with the packages tidyverse, sf, mapview, spatstat, stars, rnaturalearth, terra, tidyterra, and pbapply.
 
 The Coordinate Reference System (CRS) for this study is the Irish Transverse Mercator (ITM) projection, with EPSG code 2157. All data is reprojected or transformed into this CRS for calculations and visualizations. (cite)
 
+The 'barrows' and 'stone circles' point data were both downloaded from IrishArchaeology.org.(cite) This website hosts downloadable kml webmaps for archeaological sites all across Ireland. Unfortunately, the website's author, Eamonn, traded his last name to the Fair Folk, so is unidentifiable beyond the website. However, his great sacrifice is the reason the point data remains accessible and uncorrupted. More notes on the raw data can be found in the Appendix(link). The data is displayed on the interactive viewer below.
+
+
 ```{r}
-#| label: itinialiigjgjg
 library(tidyverse) |> suppressPackageStartupMessages()
 library(sf) |> suppressPackageStartupMessages()
 library(mapview) |> suppressPackageStartupMessages()
@@ -73,12 +74,9 @@ library(pbapply) |> suppressPackageStartupMessages()
 set.seed(6805)
 ```
 
-# Fairy Point Data Preparation
-Barrows and Stone Circles data were collected from the Irish Archaeology website, downloaded in kml format from the associated Interactive Google Map, and converted to CSV. The CSV was also cleaned in Microsoft Excel to retain all downloaded information in a usable format for the sf library. (cite) Metadata for these datasets can be found in the Appendix(link?). 
-
 ```{r}
-#| label: barrows data prep
 
+#barrows
 barrows_df <- read_csv('data/raw/barrows.csv')
 barrows_df <- barrows_df |> select(townland, class_code, latitude, longitude) |> mutate(type = "barrow")
 
@@ -87,14 +85,7 @@ barrows_sf <- barrows_df |> sf::st_as_sf(
   crs=4326) #projected to work with mapview, will reproject to Irish Transverse Mercator (ITM) (EPSG:2157)
   #also the land cover data is epsg 4326
 
-mapview(head(barrows_sf,100)) #showing the first 100 points
-head(barrows_sf)
-
-```
-
-```{r}
-#| label: circles data prep
-
+#stone circles
 stone_circles_df <- read_csv('data/raw/stone-circles.csv')
 stone_circles_df <- stone_circles_df |> select(townland, class_code, latitude, longitude) |> mutate(type = "stone circle")
 
@@ -103,35 +94,24 @@ stone_circles_sf <- stone_circles_df |> sf::st_as_sf(
   crs=4326) #projected to work with mapview, will reproject to Irish Transverse Mercator (ITM) (EPSG:2157)
   #also the land cover data is epsg 4326
 
-mapview(head(stone_circles_sf,100)) #showing the first 100 points
-head(stone_circles_sf)
-
-```
-
-```{r}
-#| label: combiningn them for some reason, probably visualization help
+#combined data
 fairies_sf <- rbind(barrows_sf, stone_circles_sf)
 fairies_sf <- fairies_sf |> sf::st_transform(2157)
 
 fairies_map <- mapview(fairies_sf, zcol="type")
+fairies_map
 
 ```
 
 The observation window for this study is the Natural Earth Data Republic of Ireland sf object at 1:10m resolution. All calculations are constrained to the bounds of this polygon. (cite)
 
 ```{r}
-#| label: ireland observation window
+#ireland observation window
 
 ireland <- ne_countries(country = "ireland", scale="large") |> select(name,geometry)
 ireland <- ireland |> sf::st_transform(2157)
-mapview(ireland) + fairies_map
 
-```
-
-Each of the point layers were converted into a spatstat ppp (planar point pattern) object and plotted inside the Ireland observation window for the remainder of the calculations.
-
-```{r}
-#| label: barrows ppp 1
+#ppp charts
 barrows_sf <- barrows_sf |> sf::st_transform(2157)
 #some of the points are outside my ireland shapefile, so I am going to remove them (since I have thousands)
 barrows_sf <- barrows_sf[st_within(barrows_sf, ireland, sparse = FALSE), ] 
@@ -140,10 +120,6 @@ barrows_ppp |> sf::st_as_sf() |> ggplot() +
     geom_sf() +
     theme_classic()
 
-```
-
-```{r}
-#| label: stone circles ppp 1
 stone_circles_sf <- stone_circles_sf |> sf::st_transform(2157)
 #some of the points are outside my ireland shapefile, so I am going to remove them (since I have thousands)
 stone_circles_sf <- stone_circles_sf[st_within(stone_circles_sf, ireland, sparse = FALSE), ] 
@@ -153,898 +129,22 @@ stone_circles_ppp |> sf::st_as_sf() |> ggplot() +
     theme_classic()
 
 ```
+
+
+
+The point data was loaded from CSV format to planar point pattern format, as displayed below. These point patterns will later be used to perform fairy barrow density calculations and stone circle distance calculations in the hypothesis testing phase.
+
+![](/photos/fairybarrows.png)
 
 # Land Cover Data Preparation
 
-Land cover data from 1990 and 2018 was collected from the EU Copernicus component of the European Union's space program. It is produced by the Coordination of Information on the Environment (CORINE) program, which provides a uniform, continent-wide land cover inventory with 44 thematic classes called the CORINE Land Cover product. (cite a few things) Full metadata of the 44 classes and their associated reclassification can be found in the Appendix(link?).
 
-```{r}
-#| label: reading in the rasters againnnn
+# Exploratory Data Analysis
 
-temp_dir <- tempdir() #temporary directory for working
-zip_file_path <- "data/raw/Rasters.zip" #path to raster
-unzip(zipfile = zip_file_path, exdir = temp_dir) #unzipping into temp directory
 
-# 1990 dataset
-tiff_file_path_1990 <- file.path(temp_dir, "Rasters/U2000_CLC1990_V2020_20u1/U2000_CLC1990_V2020_20u1/U2000_CLC1990_V2020_20u1.tif")
-lc_1990 <- rast(tiff_file_path_1990)
-
-
-
-# 2018 dataset
-tiff_file_path_2018 <- file.path(temp_dir, "Rasters/U2018_CLC2018_V2020_20u1/U2018_CLC2018_V2020_20u1/U2018_CLC2018_V2020_20u1.tif")
-lc_2018 <- rast(tiff_file_path_2018)
-
-
-
-```
-
-```{r}
-#| label: reclassification 1990 2 at the beginning
-rclmat <- matrix(c(1, 11, 1,
-                   11.999, 22, 2,
-                   22.999, 25, 3,
-                   25.999, 27, 4,
-                   27.999, 29, 3,
-                   29.999, 34, 5,
-                   34.999, 39, 6,
-                   39.999, 44, 7
-                   ), ncol=3, byrow=TRUE) #decimals so that it catches all possible values
-
-rc_lc_1990 <- classify(lc_1990, rclmat, include.lowest=TRUE)
-
-```
-
-```{r}
-#| label: visualizing the lc raster 1990 at teh beginning (make pretty later)
-#creating the color library for the classes
-lc_colors <- data.frame(
-  value = c(1, 2, 3, 4, 5, 6, 7),
-  color = c("#8B0000", "#F5DEB3", "#006400", "#556B2F","#8B7355", "#7FFFD4", "#1E90FF")
-)
-
-lc_labels <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies")
-
-plot(lc_1990, type = "classes", main = "Land Cover: 1990")
-plot(rc_lc_1990, col = lc_colors, type = "classes", main = "Reclassified Land Cover: 1990")
-
-```
-
-Full land cover reclassification table available in the Appendix(link?). Original land cover had 44 discrete classes, which was reduced to the following 7 discrete classes.
-
-| New Land Cover Category | New Cell Value |
-|----------|------|
-| Dense Human Habitat | 1 |
-| Human Agriculture | 2 |
-| Forests | 3 |
-| Grass and Shrublands | 4 |
-| Rocky, Barren, or Snowy | 5 |
-| Wetlands | 6 |
-| Water Bodies | 7 |
-
-## Hypothesis Testing
-The following section has the details for each hypothesis test (we probably need to talk more about methods? Possibly)
-
-# Hypothesis 1: Barrow Preferred Habitats
-
-# Hypothesis 2: Proximity to Stone Circles
-
-# Hypothesis 3: Stone Circle Prominent Habitats
-
-## Land Cover Change Analysis
-
-## Results and Discussion
-
-## Appendix
-
-
-## Walkthrough with lots of context and no polish
-
-Our 3 datasets: - Point data of fairy barrows, to determine if there is clustering in particular habitats - Point data of stone circles, to see if THOSE are in any particular habitat (because they're bridges between worlds, so need to be in similar places) - Shapefile from natural earth data of ireland, at highest resolution - Raster data of land cover from 1990, to identify the habitats (and create the polygons to test for clustering) - Raster data of land cover from 2018, to determine if fairy habitat has shrunk significantly
-
-Load all the libraries
-
-```{r}
-#| label: init 2
-library(tidyverse) |> suppressPackageStartupMessages()
-library(sf) |> suppressPackageStartupMessages()
-library(mapview) |> suppressPackageStartupMessages()
-library(spatstat) |> suppressPackageStartupMessages()
-library(stars) |> suppressPackageStartupMessages()
-library(rnaturalearth) |> suppressPackageStartupMessages()
-library(terra) |> suppressPackageStartupMessages()
-library(tidyterra) |> suppressPackageStartupMessages()
-library(pbapply) |> suppressPackageStartupMessages()
-set.seed(6805)
-```
-
-
-Get the barrows point data into an sf object and visualize
-
-```{r}
-#| label: data preparation 2
-
-barrows_df <- read_csv('data/raw/barrows.csv')
-barrows_df <- barrows_df |> select(townland, class_code, latitude, longitude) |> mutate(type = "barrow")
-
-barrows_sf <- barrows_df |> sf::st_as_sf(
-  coords=c("longitude","latitude"),
-  crs=4326) #projected to work with mapview, will reproject to Irish Transverse Mercator (ITM) (EPSG:2157)
-  #also the land cover data is epsg 4326
-
-mapview(head(barrows_sf,100)) #showing the first 100 points
-head(barrows_sf)
-
-```
-
-Get the stone circles point data into an sf object, combine with barrows
-
-```{r}
-#| label: data preparation 3
-
-stone_circles_df <- read_csv('data/raw/stone-circles.csv')
-stone_circles_df <- stone_circles_df |> select(townland, class_code, latitude, longitude) |> mutate(type = "stone circle")
-
-stone_circles_sf <- stone_circles_df |> sf::st_as_sf(
-  coords=c("longitude","latitude"),
-  crs=4326) #projected to work with mapview, will reproject to Irish Transverse Mercator (ITM) (EPSG:2157)
-  #also the land cover data is epsg 4326
-
-mapview(head(stone_circles_sf,100)) #showing the first 100 points
-head(stone_circles_sf)
-
-```
-
-```{r}
-#| label: data preparation 4
-fairies_sf <- rbind(barrows_sf, stone_circles_sf)
-fairies_sf <- fairies_sf |> sf::st_transform(2157)
-
-combined_map <- mapview(fairies_sf, zcol="type")
-
-```
-
-Get the polygon shapefile of ireland for the viewing window
-
-```{r}
-#| label: getting ireland shapefile 2
-
-ireland <- ne_countries(country = "ireland", scale="large") |> select(name,geometry)
-mapview(ireland)
-
-ireland <- ireland |> sf::st_transform(2157)
-mapview(ireland) + combined_map
-
-```
-
-Transform the fairy monuments file into a ppp object and visualize inside of ireland shapefile
-
-```{r}
-#| label: barrows ppp
-barrows_sf <- barrows_sf |> sf::st_transform(2157)
-#some of the points are outside my ireland shapefile, so I am going to remove them (since I have thousands)
-barrows_sf <- barrows_sf[st_within(barrows_sf, ireland, sparse = FALSE), ] 
-barrows_ppp <- as.ppp(barrows_sf, W=as.owin(ireland)) 
-barrows_ppp |> sf::st_as_sf() |> ggplot() +
-    geom_sf(size = 1) +
-    theme_classic() +
-    labs(title = "Fairy Barrows") + theme(
-  plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    axis.title = element_blank()
-  )
-
-
-```
-
-```{r}
-#| label: stone circles ppp
-stone_circles_sf <- stone_circles_sf |> sf::st_transform(2157)
-#some of the points are outside my ireland shapefile, so I am going to remove them (since I have thousands)
-stone_circles_sf <- stone_circles_sf[st_within(stone_circles_sf, ireland, sparse = FALSE), ] 
-stone_circles_ppp <- as.ppp(stone_circles_sf, W=as.owin(ireland)) 
-stone_circles_ppp |> sf::st_as_sf() |> ggplot() +
-    geom_sf() +
-    theme_classic() +     
-    labs(title = "Stone Circles") + theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    axis.title = element_blank()
-  )
-
-```
-
-INSTEAD of using a population intensity function for the simulations, will use an area calculation. We will see if a higher proportion of fairies lives in a habitat than would be expected for the area of that habitat
-
-which means now we bring in the rasters!
-
-```{r}
-#| label: reading in the rasters 2
-
-temp_dir <- tempdir() #temporary directory for working
-zip_file_path <- "data/raw/Rasters.zip" #path to raster
-unzip(zipfile = zip_file_path, exdir = temp_dir) #unzipping into temp directory
-
-# 1990 dataset
-tiff_file_path_1990 <- file.path(temp_dir, "Rasters/U2000_CLC1990_V2020_20u1/U2000_CLC1990_V2020_20u1/U2000_CLC1990_V2020_20u1.tif")
-lc_1990 <- rast(tiff_file_path_1990)
-#lc_1990_stars <- read_stars(tiff_file_path_1990) #didn't work
-#lc_1990 <- terra::project(lc_1990, "epsg:2157") #projecting to ITM
-
-
-# 2018 dataset
-tiff_file_path_2018 <- file.path(temp_dir, "Rasters/U2018_CLC2018_V2020_20u1/U2018_CLC2018_V2020_20u1/U2018_CLC2018_V2020_20u1.tif")
-lc_2018 <- rast(tiff_file_path_2018)
-#lc_2018_stars <- read_stars(tiff_file_path_2018) #didn't work
-#lc_2018 <- terra::project(lc_2018, "epsg:2157") #projecting to ITM
-
-
-```
-
-```{r}
-#| label: reclassification 1990 2
-rclmat <- matrix(c(1, 11, 1,
-                   11.999, 22, 2,
-                   22.999, 25, 3,
-                   25.999, 27, 4,
-                   27.999, 29, 3,
-                   29.999, 34, 5,
-                   34.999, 39, 6,
-                   39.999, 44, 7
-                   ), ncol=3, byrow=TRUE) #decimals so that it catches all possible values
-
-rc_lc_1990 <- classify(lc_1990, rclmat, include.lowest=TRUE)
-
-```
-
-```{r}
-#| label: visualizing the lc raster 1990
-#creating the color library for the classes
-lc_colors <- data.frame(
-  value = c(1, 2, 3, 4, 5, 6, 7),
-  color = c("#8B0000", "#F5DEB3", "#006400", "#99ec0aff","#8B7355", "#7FFFD4", "#1E90FF")
-)
-
-lc_labels <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies")
-
-plot(lc_1990, type = "classes", main = "Land Cover: 1990")
-plot(rc_lc_1990, col = lc_colors, type = "classes", main = "Reclassified Land Cover: 1990")
-
-```
-
-Full land cover reclassification table available in data README. Original land cover had 44 discrete classes, which was reduced to 7 discrete classes.
-
-| New Land Cover Category | New Cell Value |
-|----------|------|
-| Dense Human Habitat | 1 |
-| Human Agriculture | 2 |
-| Forests | 3 |
-| Grass and Shrublands | 4 |
-| Rocky, Barren, or Snowy | 5 |
-| Wetlands | 6 |
-| Water Bodies | 7 |
-
-
-Our second hypothesis will be average distance from fairy circles AND what habitats those fairy circles were built in (using a similar simmulation probably)
-
-Turning the classified raster into polygons so we can start doing the simulations
-
-```{r}
-#| label: raster into polygons
-lc_poly_1990 <- as.polygons(rc_lc_1990)
-
-# turning it into an sf object
-lc_poly_sf <- st_as_sf(lc_poly_1990)
-
-#dissolving the polygons so we can do an area calculation
-lc_poly_sf <- lc_poly_sf |>
-  group_by(U2000_CLC1990_V2020_20u1) |>
-  summarise()
-
-lc_poly_sf <- st_transform(lc_poly_sf, 2157)
-lc_poly_sf <- st_intersection(lc_poly_sf, ireland) #clipping the polygons so the borders are the same as my viewing window
-
-mapview(lc_poly_sf, zcol = "U2000_CLC1990_V2020_20u1")
-
-```
-
-
-
-Generating test statistic!
-```{r}
-#| label: barrow counts by habitat
-#making lc into a tesselation
-lc_list <- split(lc_poly_sf, lc_poly_sf$U2000_CLC1990_V2020_20u1) #grabbing individual polygons
-lc_tiles <- lapply(lc_list, as.owin) #each one as a window
-
-#tesselation of the polygon windows
-lc_tess <- tess(tiles = lc_tiles)
-
-#now the test statistic
-obs_barrow_counts <- quadratcount(barrows_ppp, tess=lc_tess) |> as.vector()
-names(obs_barrow_counts) <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies")
-obs_barrow_counts <- obs_barrow_counts |> as_tibble_row()
-```
-
-The test statistic: Referencing the literature, it is believed that fairies prefer forested habitats, which offer readily available hollow trees, babbling streams, and mossy grottos. Our first hypothesis, therefore, is that fairies prefer to make their homes in forests.
-
-```{r}
-obs_barrow_counts
-```
-
-
-habitat 'intensity', which gives the proportional probability of any point existing in each habitat type (based on area)
-
-#| label: habitat intensity function
-tile_areas <- sapply(lc_tiles, area.owin) #the area of each tile
-tile_probs <- tile_areas / sum(tile_areas) #getting the proportions
-
-habitat_prob_intensity <- function(x, y) { #intensity function for probability of points being in each habitat
-  sapply(seq_along(lc_tiles), function(i) {
-    inside.owin(x, y, lc_tiles[[i]]) * tile_probs[i]
-  }) |> rowSums()
-}
-
-
-```{r}
-#new habitat prob intensity, to try and make this run faster
-tile_areas <- sapply(lc_tiles, area.owin) #the area of each tile
-tile_probs <- tile_areas / sum(tile_areas) #getting the proportions
-
-habitat_prob_intensity <- function(x, y) {
-  coords <- cbind(x, y)
-  cell_vals <- terra::extract(rc_lc_1990, coords)[,1] #pulls out the habitat value the point lands on top of
-  cell_vals[is.na(cell_vals) | is.nan(cell_vals) | cell_vals < 1 | cell_vals > length(tile_probs)] <- 1 #prevent error by keeping everything in range
-
-  probs <- tile_probs[cell_vals] #assigning the probabilties
-  
-  probs[is.na(probs)] <- 0 #preventing errors with NA by making them 0
-  return(probs)
-}
-```
-
-## Monte Carlo Simulations: Barrows
-
-```{r}
-
-num_barrows <- nrow(barrows_sf)#to set number of points to sample
-
-#creating a function that will plot barrows around ireland according to the area proportions of the various habitats
-#and checking the runtime to make sure we can do the full 999 sims
-runtime <- system.time({gen_barrows_sim <- function() {
-  barrows_sim <- rpoint(n=num_barrows,f=habitat_prob_intensity, win=barrows_ppp$window)
-  return(barrows_sim) 
-}
-single_barrows_sim_ppp <- gen_barrows_sim()
-#IT WORKED!!! YAYYYYYY
-single_barrow_sim_counts <- quadratcount(single_barrows_sim_ppp, tess=lc_tess) |> as.vector()
-names(single_barrow_sim_counts) <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies")
-single_barrow_sim_counts <- single_barrow_sim_counts |> as_tibble_row()})
-single_barrow_sim_counts
-runtime
-```
-
-
-
-This is what I ran to do the monte carlo simulations. I never want to run that again, but here is the code
-OK and I do have to run this again and save sims_list so that we have the points for the distance calculation, unfortunately
-
-```{r}
-library('pbapply')
-#Now we are running 999 simulations wahoooo
-
-compute_quadrat_counts <- function(sim_ppp) { #making a function to apply to all the sims
-  sim_counts <- quadratcount(sim_ppp, tess=lc_tess) |> as.vector()
-  names(sim_counts) <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies")
-  return(sim_counts)
-}
-
-gen_sims_ppp <- function(num_sims) { #function to generate 999 ppp simulations
-  barrows_sims <- spatstat.random::rpoint(
-    n = num_barrows,
-    f = habitat_prob_intensity,
-    win = barrows_ppp$window,
-    nsim = num_sims
-  )
-  return(barrows_sims)
-}
-
-sims_list <- gen_sims_ppp(999) #simulations
-sims_habitat_counts <- pbapply::pblapply(sims_list, FUN=compute_quadrat_counts) #apply counts function, with a progress bar from pbapply
-full_count_df <- as_tibble(sims_habitat_counts) |> t() |> as_tibble() #smoosh them together
-colnames(full_count_df) <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies") #label columns
-full_count_df |> head() #tada!
-
-#this took two hours
-```
-
-
-```{r}
-#write_csv(full_count_df, "data/raw/monte_carlo_sims.csv") #done after code above
-#saveRDS(sims_list, "data/raw/sims_ppplist.rds")
-
-#reading them back in after saving
-monte_carlo_df <- read_csv('data/raw/monte_carlo_sims.csv')
-barrows_sims_ppplist <- readRDS("data/raw/sims_ppplist.rds")
-
-```
 
 # Hypothesis Testing
 
-## Hypothesis 1: Barrow Preferred Habitats
+# Discussion
 
-Alright now we need to test hypothesis 1 against the test statistic from earlier. Hypothesis 1 is something like 'fairies prefer forest habitat' because of a couple poems I'll write down later. I have a sneaking suspicion that this will not end up being true, so I will likely run the hypothesis test on every habitat type
-
-Let's plot those statistics, shall we
-
-```{r}
-#have to rename my categories actually so they work with the histograms
-names(monte_carlo_df) <- c("Dense_Human_Habitat", "Human_Agriculture", "Forests", "Grass_and_Shrublands","Rocky_Barren_Snowy","Wetlands","Water_Bodies")
-
-names(obs_barrow_counts) <- c("Dense_Human_Habitat", "Human_Agriculture", "Forests", "Grass_and_Shrublands","Rocky_Barren_Snowy","Wetlands","Water_Bodies")
-```
-
-```{r}
-#| label: forests distribution
-  mc_df <- bind_rows(monte_carlo_df, obs_barrow_counts)
-  monte_carlo_df |> ggplot(aes(x=Forests)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_barrow_counts$Forests, color = "darkgreen") +
-    theme_classic()
-#hahahaha turns out that's way lower, so they actually AVOID forests. What a fun finding!
-
-```
-
-```{r}
-#| label: dense human distribution
-  monte_carlo_df |> ggplot(aes(x=Dense_Human_Habitat)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_barrow_counts$Dense_Human_Habitat, color = "red") +
-    theme_classic()
-#We're pretty close to the bounds for that one
-
-```
-
-
-```{r}
-#| label: human agriculture
-  monte_carlo_df |> ggplot(aes(x=Human_Agriculture)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_barrow_counts$Human_Agriculture, color = "orange") +
-    theme_classic()
-#WOW that's way higher, which is not what I was expecting. Will have to comment on this
-
-```
-
-```{r}
-#| label: grass and shrublands
-  monte_carlo_df |> ggplot(aes(x=Grass_and_Shrublands)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_barrow_counts$Grass_and_Shrublands, color = "green") +
-    theme_classic()
-#We're pretty close to the bounds for that one too
-
-```
-
-```{r}
-#| label: rocky, barren, and snowy
-  monte_carlo_df |> ggplot(aes(x=Rocky_Barren_Snowy)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_barrow_counts$Rocky_Barren_Snowy) +
-    theme_classic()
-#Far below, they DONT like these spots
-
-```
-
-```{r}
-#| label: wetlands
-  monte_carlo_df |> ggplot(aes(x=Wetlands)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_barrow_counts$Wetlands, color = "lightblue") +
-    theme_classic()
-#Far below, they DONT like these spots either
-
-```
-
-```{r}
-#| label: water bodies
-  monte_carlo_df |> ggplot(aes(x=Water_Bodies)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_barrow_counts$Water_Bodies, color = "blue") +
-    theme_classic()
-#Far below, they DONT like these spots either either
-
-```
-
-It appears that they might have clustering, in human agriculture, and avoid some of the other areas! (of course this technically makes sense because 'fairy barrows' are actually ancient human burial mounds, so they would be found in populated areas, but we're talking about fairies here)
-
-# P value calculations
-```{r}
-#| label: p value calculations
-
-human_hab_count_more_extreme <- mc_df |> filter(Dense_Human_Habitat >= obs_barrow_counts$Dense_Human_Habitat)
-human_hab_p_val <- nrow(human_hab_count_more_extreme) / nrow(mc_df)
-
-ag_count_more_extreme <- mc_df |> filter(Human_Agriculture >= obs_barrow_counts$Human_Agriculture)
-ag_p_val <- nrow(ag_count_more_extreme) / nrow(mc_df)
-
-forest_count_more_extreme <- mc_df |> filter(Forests >= obs_barrow_counts$Forests)
-forest_p_val <- nrow(forest_count_more_extreme) / nrow(mc_df)
-
-grass_shrub_count_more_extreme <- mc_df |> filter(Grass_and_Shrublands >= obs_barrow_counts$Grass_and_Shrublands)
-grass_shrub_p_val <- nrow(grass_shrub_count_more_extreme) / nrow(mc_df)
-
-barren_count_more_extreme <- mc_df |> filter(Rocky_Barren_Snowy >= obs_barrow_counts$Rocky_Barren_Snowy)
-barren_p_val <- nrow(barren_count_more_extreme) / nrow(mc_df)
-
-wetland_count_more_extreme <- mc_df |> filter(Wetlands >= obs_barrow_counts$Wetlands)
-wetland_p_val <- nrow(wetland_count_more_extreme) / nrow(mc_df)
-
-water_count_more_extreme <- mc_df |> filter(Water_Bodies >= obs_barrow_counts$Water_Bodies)
-water_p_val <- nrow(water_count_more_extreme) / nrow(mc_df)
-
-
-
-#I could make this into a df instead of doing this way huh?
-
-print("P-values by habitat:")
-print(paste("Dense Human Habitat:",human_hab_p_val))
-print(paste("Human Agriculture:",ag_p_val))
-print(paste("Forest:",forest_p_val))
-print(paste("Grass and Shrublands:",grass_shrub_p_val))
-print(paste("Rocky, Barren, and Snowy:",barren_p_val))
-print(paste("Wetlands:",wetland_p_val))
-print(paste("Water Bodies:",water_p_val))
-
-#so out of all of these only agriculture is truly significant, but all the '1'basically means the true count was WAY lower than the expected count, which is also significant, and I'll work on that in a bit
-p_values <- c(human_hab_p_val, ag_p_val, forest_p_val, grass_shrub_p_val, barren_p_val, wetland_p_val,water_p_val)
-p_val_greater_df <- data.frame(habitat = lc_labels, p_value = p_values)
-print(p_val_greater_df)
-
-```
-
-Something something despite stories, perhaps fairy hunting grounds are different than their preferred living situations, maybe should have another hypothesis that tests whether they avoid certain habitats for their homes (which would be forests, barren, wetlands, water bodies dont really count)
-
-So! Onto hypothesis 2: Do they have any relationship to the distance from stone circles aka portals to the fairy realm?
-
-I think we need to get the mean distance of each point to its CLOSEST stone circle, which sounds like something I should be able to do
-
-Yes, we can do nearest neighbor calculations and select only the minimum distance ones
-
-ah gosh dangit, I never saved the simulated points, only the counts. That's awkward
-saved them!
-
-## Hypothesis 2: Proximity to Stone Circles
-
-Now we are going to have to run some distence calculations to see if barrows cluster around stone circles. 
-```{r}
-#| label: calculating test statistic of nearest neighbor distances
-obs_dists_sc <- nncross(barrows_ppp, stone_circles_ppp)$dist
-mean_obs_dists <- mean(obs_dists_sc)
-```
-
-```{r}
-mean_obs_dists
-```
-
-```{r}
-#| label: creating the distance function for the whole dataset
-compute_mean_dist <- function(sim_ppp) {
-  sim_dists <- nncross(sim_ppp, stone_circles_ppp)$dist
-  mean(sim_dists)
-}
-
-sim_distances <- lapply(X=barrows_sims_ppplist, FUN=compute_mean_dist)
-
-```
-
-```{r}
-#| label: visualizing mean distance null distribution
-
-sim_dist_df <- unlist(sim_distances) |> as_tibble()
-obs_dist_df <- tibble(value = mean_obs_dists)
-all_dists_df <- rbind(sim_dist_df,obs_dist_df)
-all_dists_df |> ggplot(aes(x=value)) +
-  geom_histogram(fill='black', alpha=0.5) +
-  geom_vline(xintercept = mean_obs_dists, color='darkorchid4') +
-  theme_classic()
-```
-
-Interpretation: The fairies appear to live much closer to the stone circles than predicted
-
-```{r}
-#| label: computing distance p value
-
-count_more_extreme <- all_dists_df |> filter(value >= mean_obs_dists)
-sc_dist_p_val <- nrow(count_more_extreme) / nrow(all_dists_df)
-sc_dist_p_val
-```
-
-basically all of the dataset is more extreme than the observed distance statistic. Wait, this would mean that they are FAR closer to the stone circles than they would be if randomly distributed. WOOOOO!
-
-## Hypothesis 3: Stone Circle Primary Habitats
-Now that we have determined that stone circle location is related to where fairies create their homes, and with resounding theories that they form in habitats that are similar to that of the fairy realm, let us run a simulation to see if the stone circles appear in any habitat more than the rest. We must preserve these locations
-
-## Monte Carlo Simulations: Stone Circles
-
-```{r}
-num_circles <- nrow(stone_circles_sf) #to set number of points to sample
-
-#creating a function that will plot barrows around ireland according to the area proportions of the various habitats
-#and checking the runtime to make sure we can do the full 999 sims
-runtime <- system.time({gen_circles_sim <- function() {
-  circles_sim <- rpoint(n=num_circles,f=habitat_prob_intensity, win=stone_circles_ppp$window)
-  return(circles_sim) 
-}
-single_circles_sim_ppp <- gen_circles_sim()
-#IT WORKED!!! YAYYYYYY
-single_circle_sim_counts <- quadratcount(single_circles_sim_ppp, tess=lc_tess) |> as.vector()
-names(single_circle_sim_counts) <- c("Dense_Human_Habitat", "Human_Agriculture", "Forests", "Grass_and_Shrublands","Rocky_Barren_Snowy","Wetlands","Water_Bodies")
-single_circle_sim_counts <- single_circle_sim_counts |> as_tibble_row()})
-single_circle_sim_counts
-runtime
-
-```
-
-now to take a little while again
-
-```{r}
-library('pbapply')
-#Now we are running 999 simulations wahoooo
-
-compute_quadrat_counts <- function(sim_ppp) { #making a function to apply to all the sims
-  sim_counts <- quadratcount(sim_ppp, tess=lc_tess) |> as.vector()
-  names(sim_counts) <- c("Dense_Human_Habitat", "Human_Agriculture", "Forests", "Grass_and_Shrublands","Rocky_Barren_Snowy","Wetlands","Water_Bodies")
-  return(sim_counts)
-}
-
-gen_sims_ppp <- function(num_sims) { #function to generate 999 ppp simulations
-  stone_circle_sims <- spatstat.random::rpoint(
-    n = num_circles,
-    f = habitat_prob_intensity,
-    win = stone_circles_ppp$window,
-    nsim = num_sims
-  )
-  return(stone_circle_sims)
-}
-
-sc_sims_list <- gen_sims_ppp(999) #simulations
-sc_habitat_counts <- pbapply::pblapply(sc_sims_list, FUN=compute_quadrat_counts) #apply counts function, with a progress bar from pbapply
-sc_count_df <- as_tibble(sc_habitat_counts) |> t() |> as_tibble() #smoosh them together
-colnames(sc_count_df) <- c("Dense_Human_Habitat", "Human_Agriculture", "Forests", "Grass_and_Shrublands","Rocky_Barren_Snowy","Wetlands","Water_Bodies") #label columns
-sc_count_df |> head() #tada!
-
-#this took two hours
-```
-
-```{r}
-#saving so we dont have to do that again either
-#write_csv(sc_count_df, "data/raw/sc_monte_carlo_sims.csv") #done after code above
-sc_monte_carlo_df <- read_csv('data/raw/sc_monte_carlo_sims.csv')
-```
-
-Now to generate that test statistic, we are slightly out of order here
-
-```{r}
-obs_sc_counts <- quadratcount(stone_circles_ppp, tess=lc_tess) |> as.vector()
-names(obs_sc_counts) <- c("Dense_Human_Habitat", "Human_Agriculture", "Forests", "Grass_and_Shrublands","Rocky_Barren_Snowy","Wetlands","Water_Bodies")
-obs_sc_counts <- obs_sc_counts |> as_tibble_row()
-```
-
-```{r}
-obs_sc_counts
-```
-
-And the distributions for all habitats
-
-```{r}
-#| label: forests distribution stone circles
-  sc_df <- bind_rows(sc_count_df, obs_sc_counts)
-  sc_count_df |> ggplot(aes(x=Forests)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_sc_counts$Forests, color = "darkgreen") +
-    theme_classic()
-#right on target, so nothing special there
-
-```
-
-```{r}
-#| label: dense human distribution stone circles
-  sc_count_df |> ggplot(aes(x=Dense_Human_Habitat)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_sc_counts$Dense_Human_Habitat, color = "red") +
-    theme_classic()
-#also just about right
-
-```
-
-
-```{r}
-#| label: human agriculture stone circles
-  sc_count_df |> ggplot(aes(x=Human_Agriculture)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_sc_counts$Human_Agriculture, color = "orange") +
-    theme_classic()
-#right in the middle
-
-```
-
-```{r}
-#| label: grass and shrublands stone circles
-  sc_count_df |> ggplot(aes(x=Grass_and_Shrublands)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_sc_counts$Grass_and_Shrublands, color = "green") +
-    theme_classic()
-#high for this one! nice!
-
-```
-
-```{r}
-#| label: rocky, barren, and snowy stone circles
-  sc_count_df |> ggplot(aes(x=Rocky_Barren_Snowy)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_sc_counts$Rocky_Barren_Snowy) +
-    theme_classic()
-#eh maybe higher, not a great distribution though
-
-```
-
-```{r}
-#| label: wetlands stone circles
-  sc_count_df |> ggplot(aes(x=Wetlands)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_sc_counts$Wetlands, color = "lightblue") +
-    theme_classic()
-#in the middle
-
-```
-
-```{r}
-#| label: water bodies
-  sc_count_df |> ggplot(aes(x=Water_Bodies)) +
-    geom_bar(stat='count') +
-    geom_vline(xintercept = obs_sc_counts$Water_Bodies, color = "blue") +
-    theme_classic()
-#Far below, makes sense though, maybe put something about avoiding running water
-
-```
-
-It appears that there may be clustering in grasslands! Or at least a slight preference
-
-# P value calculations for stone circles
-```{r}
-#| label: p value calculations for stone circle
-
-human_hab_count_more_extreme_sc <- sc_df |> filter(Dense_Human_Habitat >= obs_sc_counts$Dense_Human_Habitat)
-human_hab_p_val_sc <- nrow(human_hab_count_more_extreme_sc) / nrow(sc_df)
-
-ag_count_more_extreme_sc <- sc_df |> filter(Human_Agriculture >= obs_sc_counts$Human_Agriculture)
-ag_p_val_sc <- nrow(ag_count_more_extreme_sc) / nrow(sc_df)
-
-forest_count_more_extreme_sc <- sc_df |> filter(Forests >= obs_sc_counts$Forests)
-forest_p_val_sc <- nrow(forest_count_more_extreme_sc) / nrow(sc_df)
-
-grass_shrub_count_more_extreme_sc <- sc_df |> filter(Grass_and_Shrublands >= obs_sc_counts$Grass_and_Shrublands)
-grass_shrub_p_val_sc <- nrow(grass_shrub_count_more_extreme_sc) / nrow(sc_df)
-
-barren_count_more_extreme_sc <- sc_df |> filter(Rocky_Barren_Snowy >= obs_sc_counts$Rocky_Barren_Snowy)
-barren_p_val_sc <- nrow(barren_count_more_extreme_sc) / nrow(sc_df)
-
-wetland_count_more_extreme_sc <- sc_df |> filter(Wetlands >= obs_sc_counts$Wetlands)
-wetland_p_val_sc <- nrow(wetland_count_more_extreme_sc) / nrow(sc_df)
-
-water_count_more_extreme_sc <- sc_df |> filter(Water_Bodies >= obs_sc_counts$Water_Bodies)
-water_p_val_sc <- nrow(water_count_more_extreme_sc) / nrow(sc_df)
-
-
-p_values_sc <- c(human_hab_p_val_sc, ag_p_val_sc, forest_p_val_sc, grass_shrub_p_val_sc, barren_p_val_sc, wetland_p_val_sc,water_p_val_sc)
-p_val_greater_df_sc <- data.frame(habitat = lc_labels, p_value = p_values_sc)
-print(p_val_greater_df_sc)
-
-```
-
-Excellent, so this provides evidence that fairies prefer to build their circles in grass and shrublands!
-
-# Land Cover Change Analysis
-
-Time to see if we have lost grass and shrubland area! Thankfully we already have the 1990 reclassified raster, and need to do the same thing for 2018
-
-```{r}
-#| label: land cover change analysis, grasslands
-#reclassifying the 2018 data
-rc_lc_2018 <- classify(lc_2018, rclmat, include.lowest=TRUE)
-plot(rc_lc_1990, col = lc_colors, type = "classes", main = "Reclassified Land Cover: 1990")
-plot(rc_lc_2018, col = lc_colors, type = "classes", main = "Reclassified Land Cover: 2018")
-
-#realigning the pixels to make sure they're on top of each other
-rc_lc_2018 <- resample(rc_lc_2018, rc_lc_1990, method = "near")
-
-
-#stacking the raster so the pixels are paired
-lc_stack <- c(rc_lc_1990, rc_lc_2018)
-names(lc_stack) <- c("1990", "2018")
-
-#changing the column/row names
-lc_class_names <- c(
-  "1" = "Dense_Human_Habitat",
-  "2" = "Human_Agriculture",
-  "3" = "Forests",
-  "4" = "Grass_and_Shrublands",
-  "5" = "Rocky_Barren_Snowy",
-  "6" = "Wetlands",
-  "7" = "Water_Bodies"
-)
-
-change_matrix <- crosstab(lc_stack, long = FALSE)
-colnames(change_matrix) <- lc_class_names[colnames(change_matrix)]
-rownames(change_matrix) <- lc_class_names[rownames(change_matrix)]
-
-change_matrix
-
-```
-
-Now that we have the change matrix (which I'll make a pretty chart for), I want to map the pixels that started as grasslands, became grasslands, or grasslands that were lost
-
-```{r}
-# we know our grass and shrublands are class 4
-grass_code <- 4
-
-#this got complicated quick, but basically I had to make an ireland-shaped polygon of nothing, with pixels where grassland exists
-grass_1990_r <- rc_lc_1990
-values(grass_1990_r) <- ifelse(is.na(values(rc_lc_1990)), NA,
-                               values(rc_lc_1990) == grass_code)
-
-grass_2018_r <- rc_lc_2018
-values(grass_2018_r) <- ifelse(is.na(values(rc_lc_2018)), NA,
-                               values(rc_lc_2018) == grass_code)
-
-# now I have to make a little transition raster that's also an empty ireland-shaped polygon of nothing
-transition <- rc_lc_1990
-values(transition) <- NA
-
-# and make sure we only update the cells that are inside the original land cover raster (this got so technical)
-valid <- !is.na(values(rc_lc_1990))
-
-#now I'm making my new transition classes all about grassland
-values(transition)[valid & values(grass_1990_r) & values(grass_2018_r)] <- 1  #stayed as grassland
-values(transition)[valid & !values(grass_1990_r) & values(grass_2018_r)] <- 2 #new grassland
-values(transition)[valid & values(grass_1990_r) & !values(grass_2018_r)] <- 3 #lost grassland
-values(transition)[valid & !values(grass_1990_r) & !values(grass_2018_r)] <- 0 #never grassland
-
-#and plotting
-transition_colors <- c("grey80","darkgreen","lightgreen","saddlebrown")
-plot(transition, col = transition_colors, type="classes",
-     main="Grass and Shrublands Transitions", axes=TRUE)
-
-```
-
-And I want the real numbers of the transition, so we're going back to the change matrix to grab those
-
-```{r}
-persistent <- change_matrix["Grass_and_Shrublands","Grass_and_Shrublands"]
-gain <- sum(change_matrix[-which(rownames(change_matrix)=="Grass_and_Shrublands"),
-                         "Grass_and_Shrublands"]) #anything that didnt have grass in 1990 but does in 2018
-
-loss <- sum(change_matrix["Grass_and_Shrublands",
-                          -which(colnames(change_matrix)=="Grass_and_Shrublands")]) #grass in 1990 but not in 2018
-
-never_grass <- sum(change_matrix[-which(rownames(change_matrix)=="Grass_and_Shrublands"),
-                               -which(colnames(change_matrix)=="Grass_and_Shrublands")]) #never grass
-
-grass_summary <- c(Persistent = persistent,
-                   Gain = gain,
-                   Loss = loss,
-                   Never_Grass = never_grass)
-print(grass_summary)
-
-#and checking that the raster has the proper pixels, which it does!
-pixel_counts <- freq(transition)
-
-print(pixel_counts)
-
-
-```
-
-in the 1990 land cover data, 153237 of the 20780550 pixels were grass and shrubland. This is 0.737% of the total pixels.
-172092 pixels were grass and shrubland in 2018, which is 0.828% of the total pixels. We're dealing with very small numbers here, and a very limited habitat for stone circle construction!
+# Conclusion
