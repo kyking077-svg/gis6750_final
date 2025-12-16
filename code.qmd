@@ -1,45 +1,5 @@
-
-## Abstract
-
-The purpose of this project is to investigate whether Ireland is caring for its historic fairy habitats. Because fairies are notorious for obstructing data collection and interfering with computer calculations, there is very little data available on fairy habitats and their preservation. This is a two-part project, where we first determine where fairies prefer to live, and then assess whether their preferred habitat is flourishing. Data collected (with much sacrifice) on the location of fairy barrows (homes) will be converted into a density layer to determine where fairy barrows are most densely clustered. Next, land cover data from 1990 will be compared to the barrow density to determine which habitat fairies prefer. To test whether fairies cluster near stone circles, rather than a particular habitat, a  will be done on the average distance of fairy barrows from nearby stone circles. The preferred habitat for stone circles will also be noted. Finally, land cover data from 2018 will be compared to the 1990 dataset, to produce a change matrix, and identify whether Irish fairy habitat remains intact.
-
-## Introduction
-Ireland's human inhabitants share the land with a cryptic, fickle, whimsical species known as the Aes Sídhe. They are also known as the Wee Folk, the Good People, the Fair Folk, or,  most generally, fairies. The ancient name, Aes Sídhe, means *folk of the fairy mounds* or *folk of the barrows,* referring to the mounds the fairies live in. These mounds, also known as barrows, are found throughout Ireland, and are regarded with superstition and reverence. This caution is well-founded, as those who disturb or damage these mounds are punished with extensive bad luck and guaranteed disaster. 
-
-Unfortunately, the secreteive (and vengeful) nature of the Folk makes them difficult to study. As a result, modern researchers know very little about their preferred habitats, and the growing climate crisis is leading to worries about habitat suitability for Ireland's Good Neighbors (another moniker). Restless fairies are prone to violent outbursts, which presents a danger to Ireland's human inhabitants. 
-
-This study will use the little data we have to determine if fairies have a preferred habitat, and extend that finding to assess whether Ireland is properly preserving that preferred habitat. If the author survives to the completion of this study, it may offer important insights about the future of humanity's relationship with our fairy neighbors. 
-
-The hypotheses tested in this study are as follows: (ok so we need a way to say "yeah this was proven wrong, so we pivoted!")
-
-Null Hypothesis: Fairies in the Republic of Ireland display no significant clustering in home locations, indicating no preference in habitat.
-
-Hypothesis 1: Fairies in the Republic of Ireland prefer forested habitats.
-
-Hypothesis 2: Fairies in the Republic of Ireland prefer to live near stone circles.
-
-Hypothesis 3: Stone circles were built in a certain habitat, reflecting the nature of the fairy realm on the other side.
-
-(fairies prefer to live in separate habitats than their hunting habitats, indicating a deep misunderstanding in fairy ecology)
-
-
-# Literature Review
-
-mostly talking about stories about fairies, for funsies
-things to establish:
-- We're only talking about the republic of ireland because, while fairies do not recognize international borders, the republic of ireland and northern ireland have different relationships with their respective Fair Folk
-- we think Irish fairies will prefer forest habitats
-- barrows data = fairy homes
-- we also think they might prefer homes that are closer to stone circles
-- stone circles data = portals to the ethereal realm or whatever its called in irish folklore
-- fairies will be mad if their habitats degrade
-- there is evidence that they may tamper with our data, which should be anticiapted
-- There is also evidence that stories about fairies may be misleading
-- for the nonbelievers, which will actually go at the end
-
-barrows: "Barrows are typically defined as circular enclosures of earth and/or stone, often featuring a bank and ditch, though there are also examples without these features, consisting only of a simple mound. The interior of a barrow can take the form of a flat platform or shallow depression, but the most common type found in Ireland is the ring barrow. These barrows feature a low mound that rises gradually from the enclosing ditch and have an overall diameter of 15 to 25 meters."
-
-stone circles: "These circles are characterised by the presence of standing stones, typically made of sandstone or quartz, that are arranged in a circular pattern. Stone circles can range in size from a few metres to over 100 metres in diameter, and they are thought to have served a variety of religious, cultural, and astronomical purposes."
+# Full Code Documentation
+The full code was not able to be rendered in this website. This pdf provides the full documentation and codes used, while images and references are included on the main webpage.
 
 ## Methodology
 To test our hypotheses, the locations of fairy barrows will be compared to land cover data from 1990 to determine whether fairies prefer a certain habitat (first-order clustering). To test whether fairies cluster near stone circles (second-order clustering), rather than a particular habitat, we will compare the average distance of fairy barrows to nearby stone circles. The preferred habitat for stone circle construction will also be tested with the same land cover data, as we have very little information about fairy habits. If any preferred habitats are found, land cover data from 2018 will be compared to the 1990 dataset to produce a change matrix, and identify whether fairy habitat in the Repulic of Ireland remains intact. 
@@ -65,7 +25,7 @@ set.seed(6805)
 ```
 
 # Fairy Point Data Preparation
-Barrows and Stone Circles data were collected from the Irish Archaeology website, downloaded in kml format from the associated Interactive Google Map, and converted to CSV. The CSV was also cleaned in Microsoft Excel to retain all downloaded information in a usable format for the sf library. (cite) Metadata for these datasets can be found in the Appendix(link?). 
+Barrows and Stone Circles data were collected from the Irish Archaeology website, downloaded in kml format from the associated Interactive Google Map, and converted to CSV. The CSV was also cleaned in Microsoft Excel to retain all downloaded information in a usable format for the sf library.  Metadata for these datasets can be found in the Appendix. 
 
 ```{r}
 #| label: barrows data prep
@@ -108,7 +68,7 @@ fairies_map <- mapview(fairies_sf, zcol="type")
 
 ```
 
-The observation window for this study is the Natural Earth Data Republic of Ireland sf object at 1:10m resolution. All calculations are constrained to the bounds of this polygon. (cite)
+The observation window for this study is the Natural Earth Data Republic of Ireland sf object at 1:10m resolution. All calculations are constrained to the bounds of this polygon.
 
 ```{r}
 #| label: ireland observation window
@@ -147,7 +107,7 @@ stone_circles_ppp |> sf::st_as_sf() |> ggplot() +
 
 # Land Cover Data Preparation
 
-Land cover data from 1990 and 2018 was collected from the EU Copernicus component of the European Union's space program. It is produced by the Coordination of Information on the Environment (CORINE) program, which provides a uniform, continent-wide land cover inventory with 44 thematic classes called the CORINE Land Cover product. (cite a few things) Full metadata of the 44 classes and their associated reclassification can be found in the Appendix(link?).
+Land cover data from 1990 and 2018 was collected from the EU Copernicus component of the European Union's space program. It is produced by the Coordination of Information on the Environment (CORINE) program, which provides a uniform, continent-wide land cover inventory with 44 thematic classes called the CORINE Land Cover product. Full metadata of the 44 classes and their associated reclassification can be found in the Appendix.
 
 ```{r}
 #| label: reading in the rasters againnnn
@@ -213,210 +173,6 @@ Full land cover reclassification table available in the Appendix(link?). Origina
 | Wetlands | 6 |
 | Water Bodies | 7 |
 
-## Hypothesis Testing
-The following section has the details for each hypothesis test (we probably need to talk more about methods? Possibly)
-
-# Hypothesis 1: Barrow Preferred Habitats
-
-# Hypothesis 2: Proximity to Stone Circles
-
-# Hypothesis 3: Stone Circle Prominent Habitats
-
-## Land Cover Change Analysis
-
-## Results and Discussion
-
-## Appendix
-
-
-## Walkthrough with lots of context and no polish
-
-Our 3 datasets: - Point data of fairy barrows, to determine if there is clustering in particular habitats - Point data of stone circles, to see if THOSE are in any particular habitat (because they're bridges between worlds, so need to be in similar places) - Shapefile from natural earth data of ireland, at highest resolution - Raster data of land cover from 1990, to identify the habitats (and create the polygons to test for clustering) - Raster data of land cover from 2018, to determine if fairy habitat has shrunk significantly
-
-Load all the libraries
-
-```{r}
-#| label: init 2
-library(tidyverse) |> suppressPackageStartupMessages()
-library(sf) |> suppressPackageStartupMessages()
-library(mapview) |> suppressPackageStartupMessages()
-library(spatstat) |> suppressPackageStartupMessages()
-library(stars) |> suppressPackageStartupMessages()
-library(rnaturalearth) |> suppressPackageStartupMessages()
-library(terra) |> suppressPackageStartupMessages()
-library(tidyterra) |> suppressPackageStartupMessages()
-library(pbapply) |> suppressPackageStartupMessages()
-set.seed(6805)
-```
-
-
-Get the barrows point data into an sf object and visualize
-
-```{r}
-#| label: data preparation 2
-
-barrows_df <- read_csv('data/raw/barrows.csv')
-barrows_df <- barrows_df |> select(townland, class_code, latitude, longitude) |> mutate(type = "barrow")
-
-barrows_sf <- barrows_df |> sf::st_as_sf(
-  coords=c("longitude","latitude"),
-  crs=4326) #projected to work with mapview, will reproject to Irish Transverse Mercator (ITM) (EPSG:2157)
-  #also the land cover data is epsg 4326
-
-mapview(head(barrows_sf,100)) #showing the first 100 points
-head(barrows_sf)
-
-```
-
-Get the stone circles point data into an sf object, combine with barrows
-
-```{r}
-#| label: data preparation 3
-
-stone_circles_df <- read_csv('data/raw/stone-circles.csv')
-stone_circles_df <- stone_circles_df |> select(townland, class_code, latitude, longitude) |> mutate(type = "stone circle")
-
-stone_circles_sf <- stone_circles_df |> sf::st_as_sf(
-  coords=c("longitude","latitude"),
-  crs=4326) #projected to work with mapview, will reproject to Irish Transverse Mercator (ITM) (EPSG:2157)
-  #also the land cover data is epsg 4326
-
-mapview(head(stone_circles_sf,100)) #showing the first 100 points
-head(stone_circles_sf)
-
-```
-
-```{r}
-#| label: data preparation 4
-fairies_sf <- rbind(barrows_sf, stone_circles_sf)
-fairies_sf <- fairies_sf |> sf::st_transform(2157)
-
-combined_map <- mapview(fairies_sf, zcol="type")
-
-```
-
-Get the polygon shapefile of ireland for the viewing window
-
-```{r}
-#| label: getting ireland shapefile 2
-
-ireland <- ne_countries(country = "ireland", scale="large") |> select(name,geometry)
-mapview(ireland)
-
-ireland <- ireland |> sf::st_transform(2157)
-mapview(ireland) + combined_map
-
-```
-
-Transform the fairy monuments file into a ppp object and visualize inside of ireland shapefile
-
-```{r}
-#| label: barrows ppp
-barrows_sf <- barrows_sf |> sf::st_transform(2157)
-#some of the points are outside my ireland shapefile, so I am going to remove them (since I have thousands)
-barrows_sf <- barrows_sf[st_within(barrows_sf, ireland, sparse = FALSE), ] 
-barrows_ppp <- as.ppp(barrows_sf, W=as.owin(ireland)) 
-barrows_ppp |> sf::st_as_sf() |> ggplot() +
-    geom_sf(size = 1) +
-    theme_classic() +
-    labs(title = "Fairy Barrows") + theme(
-  plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    axis.title = element_blank()
-  )
-
-
-```
-
-```{r}
-#| label: stone circles ppp
-stone_circles_sf <- stone_circles_sf |> sf::st_transform(2157)
-#some of the points are outside my ireland shapefile, so I am going to remove them (since I have thousands)
-stone_circles_sf <- stone_circles_sf[st_within(stone_circles_sf, ireland, sparse = FALSE), ] 
-stone_circles_ppp <- as.ppp(stone_circles_sf, W=as.owin(ireland)) 
-stone_circles_ppp |> sf::st_as_sf() |> ggplot() +
-    geom_sf() +
-    theme_classic() +     
-    labs(title = "Stone Circles") + theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    axis.title = element_blank()
-  )
-
-```
-
-INSTEAD of using a population intensity function for the simulations, will use an area calculation. We will see if a higher proportion of fairies lives in a habitat than would be expected for the area of that habitat
-
-which means now we bring in the rasters!
-
-```{r}
-#| label: reading in the rasters 2
-
-temp_dir <- tempdir() #temporary directory for working
-zip_file_path <- "data/raw/Rasters.zip" #path to raster
-unzip(zipfile = zip_file_path, exdir = temp_dir) #unzipping into temp directory
-
-# 1990 dataset
-tiff_file_path_1990 <- file.path(temp_dir, "Rasters/U2000_CLC1990_V2020_20u1/U2000_CLC1990_V2020_20u1/U2000_CLC1990_V2020_20u1.tif")
-lc_1990 <- rast(tiff_file_path_1990)
-#lc_1990_stars <- read_stars(tiff_file_path_1990) #didn't work
-#lc_1990 <- terra::project(lc_1990, "epsg:2157") #projecting to ITM
-
-
-# 2018 dataset
-tiff_file_path_2018 <- file.path(temp_dir, "Rasters/U2018_CLC2018_V2020_20u1/U2018_CLC2018_V2020_20u1/U2018_CLC2018_V2020_20u1.tif")
-lc_2018 <- rast(tiff_file_path_2018)
-#lc_2018_stars <- read_stars(tiff_file_path_2018) #didn't work
-#lc_2018 <- terra::project(lc_2018, "epsg:2157") #projecting to ITM
-
-
-```
-
-```{r}
-#| label: reclassification 1990 2
-rclmat <- matrix(c(1, 11, 1,
-                   11.999, 22, 2,
-                   22.999, 25, 3,
-                   25.999, 27, 4,
-                   27.999, 29, 3,
-                   29.999, 34, 5,
-                   34.999, 39, 6,
-                   39.999, 44, 7
-                   ), ncol=3, byrow=TRUE) #decimals so that it catches all possible values
-
-rc_lc_1990 <- classify(lc_1990, rclmat, include.lowest=TRUE)
-
-```
-
-```{r}
-#| label: visualizing the lc raster 1990
-#creating the color library for the classes
-lc_colors <- data.frame(
-  value = c(1, 2, 3, 4, 5, 6, 7),
-  color = c("#8B0000", "#F5DEB3", "#006400", "#99ec0aff","#8B7355", "#7FFFD4", "#1E90FF")
-)
-
-lc_labels <- c("Dense Human Habitat", "Human Agriculture", "Forests", "Grass and Shrublands", "Rocky, Barren, or Snowy", "Wetlands", "Water Bodies")
-
-plot(lc_1990, type = "classes", main = "Land Cover: 1990")
-plot(rc_lc_1990, col = lc_colors, type = "classes", main = "Reclassified Land Cover: 1990")
-
-```
-
-Full land cover reclassification table available in data README. Original land cover had 44 discrete classes, which was reduced to 7 discrete classes.
-
-| New Land Cover Category | New Cell Value |
-|----------|------|
-| Dense Human Habitat | 1 |
-| Human Agriculture | 2 |
-| Forests | 3 |
-| Grass and Shrublands | 4 |
-| Rocky, Barren, or Snowy | 5 |
-| Wetlands | 6 |
-| Water Bodies | 7 |
-
-
 Our second hypothesis will be average distance from fairy circles AND what habitats those fairy circles were built in (using a similar simmulation probably)
 
 Turning the classified raster into polygons so we can start doing the simulations
@@ -440,9 +196,21 @@ mapview(lc_poly_sf, zcol = "U2000_CLC1990_V2020_20u1")
 
 ```
 
+## Hypothesis Testing
+The following section has the details for each hypothesis test. We will test the following hypotheses:
+Null Hypothesis: Fairies in the Republic of Ireland display no significant clustering in home locations, indicating no preference in habitat.
 
+Hypothesis 1: Fairies in the Republic of Ireland prefer forested habitats.
 
-Generating test statistic!
+Hypothesis 2: Fairies in the Republic of Ireland prefer to live near stone circles.
+
+Hypothesis 3: Stone circles were built in a certain habitat, reflecting the nature of the fairy realm on the other side.
+
+# Hypothesis 1: Barrow Preferred Habitats
+To test this hypothesis, we will generate a habitat 'intensity' funcion and use it to determine whether fairies cluster in any of the major land cover types: Dense Human Habitat, Human Agriculture, Forests, Grass and Shrublands, Rocky, Barren, or Snowy, Wetlands, or Water Bodies. The number of barrows found in each habitat type will form the initial observations, which we will compare to a Monte Carlo simulation. The Monte Carlo simulation will generate 999 similar point patterns of hypothetical barrows, proportionally generated into each habitat type. We will then compare the probability of a barrow appearing in each habitat type to the true proportion of real barrows we have observed. 
+
+Below, we see the null distribution of the likely number of barrows in forest habitats, shown in grey bars, and the true number of barrows found in forests in the existing data, shown by a green line. If we had the 'expected' number of barrows in forest habitats for the amount of forested area in Ireland, the green line would be somewhere within the grey null distribution. However, this chart shows that there are far *less* barrows in forested areas, indicating that fairies actually *avoid* building their barrow homes in forests. 
+
 ```{r}
 #| label: barrow counts by habitat
 #making lc into a tesselation
@@ -467,17 +235,6 @@ obs_barrow_counts
 
 habitat 'intensity', which gives the proportional probability of any point existing in each habitat type (based on area)
 
-#| label: habitat intensity function
-tile_areas <- sapply(lc_tiles, area.owin) #the area of each tile
-tile_probs <- tile_areas / sum(tile_areas) #getting the proportions
-
-habitat_prob_intensity <- function(x, y) { #intensity function for probability of points being in each habitat
-  sapply(seq_along(lc_tiles), function(i) {
-    inside.owin(x, y, lc_tiles[[i]]) * tile_probs[i]
-  }) |> rowSums()
-}
-
-
 ```{r}
 #new habitat prob intensity, to try and make this run faster
 tile_areas <- sapply(lc_tiles, area.owin) #the area of each tile
@@ -498,6 +255,7 @@ habitat_prob_intensity <- function(x, y) {
 ## Monte Carlo Simulations: Barrows
 
 ```{r}
+#testing and developing the final function
 
 num_barrows <- nrow(barrows_sf)#to set number of points to sample
 
@@ -560,13 +318,6 @@ barrows_sims_ppplist <- readRDS("data/raw/sims_ppplist.rds")
 
 ```
 
-# Hypothesis Testing
-
-## Hypothesis 1: Barrow Preferred Habitats
-
-Alright now we need to test hypothesis 1 against the test statistic from earlier. Hypothesis 1 is something like 'fairies prefer forest habitat' because of a couple poems I'll write down later. I have a sneaking suspicion that this will not end up being true, so I will likely run the hypothesis test on every habitat type
-
-Let's plot those statistics, shall we
 
 ```{r}
 #have to rename my categories actually so they work with the histograms
@@ -647,7 +398,8 @@ names(obs_barrow_counts) <- c("Dense_Human_Habitat", "Human_Agriculture", "Fores
 
 ```
 
-It appears that they might have clustering, in human agriculture, and avoid some of the other areas! (of course this technically makes sense because 'fairy barrows' are actually ancient human burial mounds, so they would be found in populated areas, but we're talking about fairies here)
+
+The p-value is generated by taking the proportion of the null distribution that has more fairy barrows predicted in that habitat type than the observed counts. In context of the Grass and Shrublands habitat, this means that 40% of the Monte Carlo simulations had more fairy barrows in Grass and Shrublands than the actual data. A p-value of 1.000 means that the true number of fairy barrows in that habitat type is far lower than the simulations, and indicates an avoidance behavior. A very small p-value, such as 0.001 in Human Agriculture, shows that a significantly higher proportion of fairy barrows were built in that habitat than would be expected, indicating a preference behavior. The distributions for each habitat type are displayed below, for comparison.
 
 # P value calculations
 ```{r}
@@ -674,8 +426,6 @@ wetland_p_val <- nrow(wetland_count_more_extreme) / nrow(mc_df)
 water_count_more_extreme <- mc_df |> filter(Water_Bodies >= obs_barrow_counts$Water_Bodies)
 water_p_val <- nrow(water_count_more_extreme) / nrow(mc_df)
 
-
-
 #I could make this into a df instead of doing this way huh?
 
 print("P-values by habitat:")
@@ -694,20 +444,17 @@ print(p_val_greater_df)
 
 ```
 
-Something something despite stories, perhaps fairy hunting grounds are different than their preferred living situations, maybe should have another hypothesis that tests whether they avoid certain habitats for their homes (which would be forests, barren, wetlands, water bodies dont really count)
+From these distributions and their associated p-values, we find that fairies prefer Human Agriculture as a habitat, and avoid forests, barren areas, wetlands, and water bodies. They have no particular preference or aversion for Dense Human Habitat or Grass and Shrublands. Further studies must be conducted to study the reason for this new finding. Perhaps they prefer to hunt in forests and wetlands, which is why they are encountered so often but do not reside there. Perhaps our data was false, to conceal where they reside, or shows evidence of a misinformation campaign that we just uncovered. Regardless, no further conclusions can be drawn until a behavioral study is performed.
 
-So! Onto hypothesis 2: Do they have any relationship to the distance from stone circles aka portals to the fairy realm?
+# Hypothesis 2: Proximity to Stone Circles
+Stone circles are said to be portals between the fairy realm and our realm, and there have been theories that fairies use these portals regularly. If this were the case, the fairies may choose to live close to stone circles, to prevent frequent cross-country migration. In addition, ecological migration theories for other animal species indicate that fairies might emerge from a portal and choose a nearby location to construct their barrows.
 
-I think we need to get the mean distance of each point to its CLOSEST stone circle, which sounds like something I should be able to do
+Null Hypothesis: Fairies in the Republic of Ireland display no significant clustering in home locations, indicating no preference in habitat.
 
-Yes, we can do nearest neighbor calculations and select only the minimum distance ones
+Hypothesis 2: Fairies in the Republic of Ireland prefer to live near stone circles.
 
-ah gosh dangit, I never saved the simulated points, only the counts. That's awkward
-saved them!
+To test this hypothesis, we will calculate the distance of each fairy barrow to its nearest stone circle. This will generate our observation statistic, and then we will run the same calcualtion on the 999 simulated barrow patterns from Hypothesis 1. This will create a null distribution of the average distance a barrow might be constructed from a stone circle. 
 
-## Hypothesis 2: Proximity to Stone Circles
-
-Now we are going to have to run some distence calculations to see if barrows cluster around stone circles. 
 ```{r}
 #| label: calculating test statistic of nearest neighbor distances
 obs_dists_sc <- nncross(barrows_ppp, stone_circles_ppp)$dist
@@ -741,7 +488,6 @@ all_dists_df |> ggplot(aes(x=value)) +
   theme_classic()
 ```
 
-Interpretation: The fairies appear to live much closer to the stone circles than predicted
 
 ```{r}
 #| label: computing distance p value
@@ -751,14 +497,19 @@ sc_dist_p_val <- nrow(count_more_extreme) / nrow(all_dists_df)
 sc_dist_p_val
 ```
 
-basically all of the dataset is more extreme than the observed distance statistic. Wait, this would mean that they are FAR closer to the stone circles than they would be if randomly distributed. WOOOOO!
+This is another important finding on fairy behavior and home preference. People have historically observed fairies emerging from stone circles, and many humans have gone missing upon visiting them. However, the relationship between fairy dwellings and their nearby portals has never been studied or quantified. Further studies should be completed on how often a fairy travels to a stone circle, and whether their frequency is at all associated with the distance of their home to the nearest portal. 
 
-## Hypothesis 3: Stone Circle Primary Habitats
-Now that we have determined that stone circle location is related to where fairies create their homes, and with resounding theories that they form in habitats that are similar to that of the fairy realm, let us run a simulation to see if the stone circles appear in any habitat more than the rest. We must preserve these locations
+# Hypothesis 3: Stone Circle Prominent Habitats
+Some modern researchers claim that stone circles are built in places that resemble the fairy realm on the other side. This is, as they say, part of the power that connects the realms and allows transportation between. Unfortunately, as seen in the literature review, very little evidence (and researchers) of these findings have survived. In our hubris, we seek to determine whether this might be true. If stone circles are prominently built in a certain habitat, it may give us insight into the nature of the fairy realm. If I go missing upon the publication of this paper, this hypothesis will be why.
+
+Hypothesis 3: Stone circles were built in a certain habitat, possibly reflecting the nature of the fairy realm on the other side.
+
+To test this hypothesis, we will run a very similar test to that of the fairy barrows. We will generate a habitat 'intensity' funcion and use it to determine whether stone circles are clustered in any of the major land cover types. The number of stone circles found in each habitat type will form the initial observations, which we will compare to a Monte Carlo simulation. The Monte Carlo simulation will generate 999 similar point patterns of hypothetical stone circles, proportionally generated into each habitat type. We will then compare the probability of a stone circle appearing in each habitat type to the true proportion of real circles we have observed. 
 
 ## Monte Carlo Simulations: Stone Circles
 
 ```{r}
+#creating the stone circles function, similar to the barrows one
 num_circles <- nrow(stone_circles_sf) #to set number of points to sample
 
 #creating a function that will plot barrows around ireland according to the area proportions of the various habitats
@@ -830,8 +581,8 @@ And the distributions for all habitats
 
 ```{r}
 #| label: forests distribution stone circles
-  sc_df <- bind_rows(sc_count_df, obs_sc_counts)
-  sc_count_df |> ggplot(aes(x=Forests)) +
+  sc_df <- bind_rows(sc_monte_carlo_df, obs_sc_counts)
+  sc_monte_carlo_df |> ggplot(aes(x=Forests)) +
     geom_bar(stat='count') +
     geom_vline(xintercept = obs_sc_counts$Forests, color = "darkgreen") +
     theme_classic()
@@ -841,7 +592,7 @@ And the distributions for all habitats
 
 ```{r}
 #| label: dense human distribution stone circles
-  sc_count_df |> ggplot(aes(x=Dense_Human_Habitat)) +
+  sc_monte_carlo_df |> ggplot(aes(x=Dense_Human_Habitat)) +
     geom_bar(stat='count') +
     geom_vline(xintercept = obs_sc_counts$Dense_Human_Habitat, color = "red") +
     theme_classic()
@@ -852,7 +603,7 @@ And the distributions for all habitats
 
 ```{r}
 #| label: human agriculture stone circles
-  sc_count_df |> ggplot(aes(x=Human_Agriculture)) +
+  sc_monte_carlo_df |> ggplot(aes(x=Human_Agriculture)) +
     geom_bar(stat='count') +
     geom_vline(xintercept = obs_sc_counts$Human_Agriculture, color = "orange") +
     theme_classic()
@@ -862,7 +613,7 @@ And the distributions for all habitats
 
 ```{r}
 #| label: grass and shrublands stone circles
-  sc_count_df |> ggplot(aes(x=Grass_and_Shrublands)) +
+  sc_monte_carlo_df |> ggplot(aes(x=Grass_and_Shrublands)) +
     geom_bar(stat='count') +
     geom_vline(xintercept = obs_sc_counts$Grass_and_Shrublands, color = "green") +
     theme_classic()
@@ -872,7 +623,7 @@ And the distributions for all habitats
 
 ```{r}
 #| label: rocky, barren, and snowy stone circles
-  sc_count_df |> ggplot(aes(x=Rocky_Barren_Snowy)) +
+  sc_monte_carlo_df |> ggplot(aes(x=Rocky_Barren_Snowy)) +
     geom_bar(stat='count') +
     geom_vline(xintercept = obs_sc_counts$Rocky_Barren_Snowy) +
     theme_classic()
@@ -882,7 +633,7 @@ And the distributions for all habitats
 
 ```{r}
 #| label: wetlands stone circles
-  sc_count_df |> ggplot(aes(x=Wetlands)) +
+  sc_monte_carlo_df |> ggplot(aes(x=Wetlands)) +
     geom_bar(stat='count') +
     geom_vline(xintercept = obs_sc_counts$Wetlands, color = "lightblue") +
     theme_classic()
@@ -892,7 +643,7 @@ And the distributions for all habitats
 
 ```{r}
 #| label: water bodies
-  sc_count_df |> ggplot(aes(x=Water_Bodies)) +
+  sc_monte_carlo_df |> ggplot(aes(x=Water_Bodies)) +
     geom_bar(stat='count') +
     geom_vline(xintercept = obs_sc_counts$Water_Bodies, color = "blue") +
     theme_classic()
@@ -900,7 +651,6 @@ And the distributions for all habitats
 
 ```
 
-It appears that there may be clustering in grasslands! Or at least a slight preference
 
 # P value calculations for stone circles
 ```{r}
@@ -934,9 +684,21 @@ print(p_val_greater_df_sc)
 
 ```
 
-Excellent, so this provides evidence that fairies prefer to build their circles in grass and shrublands!
+From the p-values, we find that roughly the expected number of stone circles exists in each habitat except for Grass and Shrublands, which has a disproportionately high number of stone circles. It also appears that stone circles are not built in water bodies, but that is not a surprise. Below, we see the null distribution of the likely number of stone cirlces in the Grass and Shrublands, shown in grey bars, and the true number of stone circles found, shown by a light green bar. If we had the 'expected' number of circles in Grass and Shrublands, the colored line would be somewhere within the grey null distribution. Instead it is to the far right side of the distribution, and 0.9% of the possible stone circle counds are higher than the true number of stone circle counts in that habitat. Collectively, this indicates that fairies prefer to build their stone circles in Grass and Shrubland habitats, but have no aversions beyond water bodies, which would be hard to build in. 
 
-# Land Cover Change Analysis
+Since fairies prefer to build their stone circles in Grass and Shrublands, and tend to build their homes near these stone circles, we must ensure that Ireland is properly preserving its Grass and Shrublands. The following section will investigate this extension of the original hypotheses.
+
+## Land Cover Change Analysis
+Through our hypothesis testing, we determined that:
+1) Fairies prefer to live in agricultural areas, defying centuries of literature
+
+2) Fairies prefer to live in close proximity to stone circles
+
+3) Stone circles are most commonly built in grasslands and shrublands
+
+Because stone circles appear to be central to fairy migration and intentional in their construction, the Republic of Ireland should ensure they are preserving their grasslands and shrublands. All of the previous analysis was done on land cover data from 1990, which is the oldest land cover data available for the Republic of Ireland. The following section will compare the 1990 land cover data to the most recent land cover data, from 2018. We will specifically look at the Grass and Shrublands area, and create a transition matrix to see how much area was lost or gained over the intervening time. The Grass and Shrublands area makes up less than 1% of Irelands total land area, which means there is a very limited amount of land for stone circle construction. 
+
+A change matrix is displayed below, with each cell representing the number of 100mx100m pixels that transformed into that habitat type between 1990 and 2018. The rows represent the original 1990 land cover type, while the columns indicate the 2018 land cover type. For example, cell (1,2) represents the 13014 pixels that changed from Dense Human Habitat to Human Agriculture in the intervening time.
 
 Time to see if we have lost grass and shrubland area! Thankfully we already have the 1990 reclassified raster, and need to do the same thing for 2018
 
@@ -974,7 +736,7 @@ change_matrix
 
 ```
 
-Now that we have the change matrix (which I'll make a pretty chart for), I want to map the pixels that started as grasslands, became grasslands, or grasslands that were lost
+This change matrix represents the land cover transitions for every habitat type. To determine the gain or loss in Grass and Shrublands, we will complete a second analysis. The table below shows the number of pixels that were Grass and Shrublands in both time periods (Persistent), the number of pixels that turned from another habitat type into Grass and Shrublands (Gain), the number of pixels that turned from Grass and Shrublands to a different habitat type (Loss), and the number of other pixels in Ireland (Never Grass). 
 
 ```{r}
 # we know our grass and shrublands are class 4
@@ -1036,5 +798,7 @@ print(pixel_counts)
 
 ```
 
-in the 1990 land cover data, 153237 of the 20780550 pixels were grass and shrubland. This is 0.737% of the total pixels.
-172092 pixels were grass and shrubland in 2018, which is 0.828% of the total pixels. We're dealing with very small numbers here, and a very limited habitat for stone circle construction!
+From the above table, we see that the Republic of Ireland saw a 12.3% increase in total Grass and Shrubland area from 1990 to 2018. About half of the original grassland from 1990 was lost, but a far greater amount of new grassland formed by 2018. While this does provide opportunities for the fairies to create new stone circles, it does imply that some of the original stone circles might have been destroyed or shifted into different habitat types. Further research must be conducted to see if the Loss grasslands included a large amount of stone circles, or whether the areas with stone circles were in the half that was preserved.
+
+# Conclusion
+Much to the author's relief, this concluses the initial investigation of fairy habitats in the Republic of Ireland. This study provides evidence that, despite popular belief, Irish fairies prefer to live in agricultural areas, rather than the oft-depicted forests. In addition, fairies prefer to live near stone circles, possibly to easily travel to them, or as a result of their initial dispersal to the human realm via the portals. Finally, we found that stone circles are disproportionately often constructed in grasslands and shrublands. Upon investigation of land cover change, we found that the Republic of Ireland has maintained and increased the total amount of available grasslands for possible stone circle construction, but that half of the grasslands since 1990 have transitioned to other land cover types. We recommend immediate research into the effects of this loss, and whether any major fairy circles were disturbed between 1990 and 2018. We also recommend behavioral studies on the preference for agricultural dwellings, and propose research into the hunting habits of Irish fairies as an explanation for their frequent sightings in forested areas. Finally, we offer advice to future researchers: Offerings of honey, flowers, and interesting buttons may sate the fairies long enough to complete your studies.
